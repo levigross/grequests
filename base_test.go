@@ -23,6 +23,11 @@ func TestGetNoOptions(t *testing.T) {
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
 	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return return OK")
+	}
+
 	myJsonStruct := &BasicGetResponse{}
 
 	err := resp.JSON(myJsonStruct)
@@ -52,7 +57,5 @@ func TestGetNoOptionsChannel(t *testing.T) {
 		if myJsonStruct.URL != "http://httpbin.org/get" {
 			t.Error("For some reason the URL isn't the same", myJsonStruct.URL)
 		}
-
 	}
-
 }
