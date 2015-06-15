@@ -43,6 +43,14 @@ type RequestOptions struct {
 	Auth []string
 }
 
+func doRequest(requestVerb, url string, ro *RequestOptions) chan *Response {
+	responseChan := make(chan *Response)
+	go func() {
+		responseChan <- buildResponse(buildRequest(requestVerb, url, ro))
+	}()
+	return responseChan
+}
+
 // buildRequest is where most of the magic happens for request processing
 func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, error) {
 	if ro == nil {

@@ -48,21 +48,20 @@ type BasicPostFileUpload struct {
 	Args  struct{} `json:"args"`
 	Data  string   `json:"data"`
 	Files struct {
-			  File string `json:"file"`
-		  } `json:"files"`
+		File string `json:"file"`
+	} `json:"files"`
 	Form    struct{} `json:"form"`
 	Headers struct {
-			  Accept_Encoding string `json:"Accept-Encoding"`
-			  Content_Length  string `json:"Content-Length"`
-			  Content_Type    string `json:"Content-Type"`
-			  Host            string `json:"Host"`
-			  User_Agent      string `json:"User-Agent"`
-		  } `json:"headers"`
+		Accept_Encoding string `json:"Accept-Encoding"`
+		Content_Length  string `json:"Content-Length"`
+		Content_Type    string `json:"Content-Type"`
+		Host            string `json:"Host"`
+		User_Agent      string `json:"User-Agent"`
+	} `json:"headers"`
 	JSON   interface{} `json:"json"`
 	Origin string      `json:"origin"`
 	URL    string      `json:"url"`
 }
-
 
 func TestBasicPostRequest(t *testing.T) {
 	verifyOkPostResponse(<-Post("http://httpbin.org/post",
@@ -80,7 +79,7 @@ func TestBasicPostRequestUpload(t *testing.T) {
 	defer fd.Close()
 
 	resp := <-Post("http://httpbin.org/post",
-		&RequestOptions{File: &FileUpload{FileName: "wonderful.exe", FileContents:fd}})
+		&RequestOptions{File: &FileUpload{FileName: "wonderful.exe", FileContents: fd}})
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -91,7 +90,6 @@ func TestBasicPostRequestUpload(t *testing.T) {
 	}
 
 	myJsonStruct := &BasicPostFileUpload{}
-
 
 	if err := resp.Json(myJsonStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
