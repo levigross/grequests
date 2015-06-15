@@ -1,8 +1,11 @@
 package grequests
 
 import (
+	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,7 +22,10 @@ type RequestOptions struct {
 	Params map[string]string
 
 	// Files is where you can include files to upload. The use of this data structure is limited to POST requests
-	Files map[string]io.ReadCloser
+	File *FileUpload
+
+	// Json can be used when you wish to send JSON within the request body
+	Json interface{}
 
 	// If you want to add custom HTTP headers to the request, this is your friend
 	Headers map[string]string
@@ -81,27 +87,92 @@ func buildNonIdempotentRequest(httpMethod, userUrl string, ro *RequestOptions) (
 }
 
 func buildPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
-	if len(ro.Files) == 0 {
+	if ro.Json != nil {
+		return createBasicJsonRequest(httpMethod, userUrl, ro)
+	}
+
+	if ro.File == nil {
 		return createBasicPostRequest(httpMethod, userUrl, ro)
 	}
 
-	return nil, nil // Placeholder
+	// Our only other option is a multipart POST
+	return createMultiPartPostRequest(httpMethod, userUrl, ro)
 }
 
+func createMultiPartPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+	defer ro.File.FileContents.Close()
+
+	requestBody := &bytes.Buffer{}
+
+	multipartWriter := multipart.NewWriter(requestBody)
+	writer, err := multipartWriter.CreateFormFile("file", ro.File.FileName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = io.Copy(writer, ro.File.FileContents); err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	// Populate the other parts of the form (if there are any)
+	for key, value := range ro.Data {
+		multipartWriter.WriteField(key, value)
+	}
+
+	err = multipartWriter.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(httpMethod, userUrl, requestBody)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", multipartWriter.FormDataContentType())
+
+	return req, err
+}
+
+func createBasicJsonRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+
+	tempBuffer := &bytes.Buffer{}
+
+	jsonEncoder := json.NewEncoder(tempBuffer)
+	jsonEncoder.Encode(ro.Json)
+
+	req, err := http.NewRequest(httpMethod, userUrl, tempBuffer)
+	if err != nil {
+		return nil, err
+	}
+	// The content type must be set to a regular form
+	req.Header.Set("Content-Type", "application/json")
+
+	return req, nil
+
+}
 func createBasicPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+
 	req, err := http.NewRequest(httpMethod, userUrl, strings.NewReader(encodePostValues(ro.Data)))
 	if err != nil {
 		return nil, err
 	}
+	// The content type must be set to a regular form
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	return req, nil
 }
+
 func encodePostValues(postValues map[string]string) string {
 	urlValues := &url.Values{}
+
 	for key, value := range postValues {
 		urlValues.Set(key, value)
 	}
-	return urlValues.Encode()
+
+	return urlValues.Encode() // This will sort and encode all of the string values
 }
 
 func buildHTTPClient(ro *RequestOptions) *http.Client {
@@ -119,6 +190,7 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 
 // buildUrlParams returns a URL with all of the params
 // Note: This function will override current URL params if they contradict what is provided in the map
+// That is what the "magic" is on the last line
 func buildUrlParams(userUrl string, params map[string]string) string {
 	parsedUrl, err := url.Parse(userUrl)
 
