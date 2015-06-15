@@ -302,6 +302,12 @@ func TestGetString(t *testing.T) {
 		t.Error("Body string have not been cached", resp.String())
 	}
 
+	if err := resp.DownloadToFile("randomFile"); err != nil {
+		t.Error("Unable to download file: ", err)
+	}
+
+	defer os.Remove("randomFile")
+
 }
 
 func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {

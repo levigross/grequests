@@ -1,7 +1,6 @@
 package grequests
 
 import (
-	"os"
 	"strings"
 	"testing"
 )
@@ -36,6 +35,7 @@ type BasicPostJsonResponse struct {
 		Content_Type    string `json:"Content-Type"`
 		Host            string `json:"Host"`
 		User_Agent      string `json:"User-Agent"`
+		XRequestedWith  string `json:"X-Requested-With"`
 	} `json:"headers"`
 	JSON struct {
 		One string `json:"One"`
@@ -50,7 +50,9 @@ type BasicPostFileUpload struct {
 	Files struct {
 		File string `json:"file"`
 	} `json:"files"`
-	Form    struct{} `json:"form"`
+	Form struct {
+		One string `json:"one"`
+	} `json:"form"`
 	Headers struct {
 		Accept_Encoding string `json:"Accept-Encoding"`
 		Content_Length  string `json:"Content-Length"`
@@ -70,16 +72,11 @@ func TestBasicPostRequest(t *testing.T) {
 }
 
 func TestBasicPostRequestUpload(t *testing.T) {
-	fd, err := os.Open("test_files/mypassword")
-
-	if err != nil {
-		t.Error("Unable to open test file", err)
-	}
-
-	defer fd.Close()
-
 	resp := <-Post("http://httpbin.org/post",
-		&RequestOptions{File: &FileUpload{FileName: "wonderful.exe", FileContents: fd}})
+		&RequestOptions{
+			File: FileUploadFromDisk("test_files/mypassword"),
+			Data: map[string]string{"One": "Two"},
+		})
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -119,11 +116,15 @@ func TestBasicPostRequestUpload(t *testing.T) {
 		t.Error("Response returned a non-200 code")
 	}
 
+	if myJsonStruct.Form.One != "Two" {
+		t.Error("Unable to parse form properly", myJsonStruct.Form)
+	}
+
 }
 
 func TestBasicPostJsonRequest(t *testing.T) {
 	resp := <-Post("http://httpbin.org/post",
-		&RequestOptions{Json: map[string]string{"One": "Two"}})
+		&RequestOptions{Json: map[string]string{"One": "Two"}, IsAjax: true})
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -166,6 +167,10 @@ func TestBasicPostJsonRequest(t *testing.T) {
 
 	if resp.StatusCode != 200 {
 		t.Error("Response returned a non-200 code")
+	}
+
+	if myJsonStruct.Headers.XRequestedWith != "XMLHttpRequest" {
+		t.Error("Invalid requested header: ", myJsonStruct.Headers.XRequestedWith)
 	}
 
 }
