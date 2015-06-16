@@ -199,6 +199,10 @@ func TestGetFileDownload(t *testing.T) {
 		t.Error("Unable to download to file: ", err)
 	}
 
+	if err := resp.DownloadToFile("."); err == nil {
+		t.Error("Able to create file '.'")
+	}
+
 	fd, err := os.Open(fileName)
 	defer fd.Close()
 	defer os.Remove(fileName)
@@ -237,6 +241,52 @@ func TestGetFileDownload(t *testing.T) {
 
 }
 
+func TestJsonConsumedResponse(t *testing.T) {
+	resp := <-Get("http://httpbin.org/get", nil)
+
+	if resp.Error != nil {
+		t.Error("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	if resp.Bytes() == nil {
+		t.Error("Unable to coerce value to bytes")
+	}
+
+	resp.ClearInternalBuffer()
+
+	if err := resp.Json(struct{}{}); err == nil {
+		t.Error("Struct should not be able to hold JSON: ")
+	}
+}
+
+func TestDownloadConsumedResponse(t *testing.T) {
+	resp := <-Get("http://httpbin.org/get", nil)
+
+	if resp.Error != nil {
+		t.Error("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	if resp.Bytes() == nil {
+		t.Error("Unable to coerce value to bytes")
+	}
+
+	resp.ClearInternalBuffer()
+
+	if err := resp.DownloadToFile("randomFile"); err == nil {
+		t.Error("Still able to download file: ", err)
+	}
+
+	defer os.Remove("randomFile")
+}
+
 func TestGetBytes(t *testing.T) {
 	resp := <-Get("http://httpbin.org/get", nil)
 
@@ -269,12 +319,18 @@ func TestGetBytesNoBuffer(t *testing.T) {
 	}
 
 	if resp.Bytes() == nil {
-		t.Error("JSON decoding did not fully consume the response stream")
+		t.Error("Cannot coerce HTTP response to bytes")
 	}
 
 	if bytes.Compare(resp.Bytes(), resp.Bytes()) != 0 {
 		t.Error("Body bytes have not been cached", resp.Bytes())
 	}
+
+	if err := resp.DownloadToFile("randomFile"); err != nil {
+		t.Error("Unable to download file: ", err)
+	}
+
+	defer os.Remove("randomFile")
 
 	resp.ClearInternalBuffer()
 
@@ -308,6 +364,12 @@ func TestGetString(t *testing.T) {
 
 	defer os.Remove("randomFile")
 
+	resp.ClearInternalBuffer()
+
+	if resp.String() != "" {
+		t.Error("Internal Buffer not cleaned up")
+	}
+
 }
 
 func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
@@ -321,8 +383,7 @@ func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 
 	myJsonStruct := &BasicGetResponseArgs{}
 
-	err := resp.Json(myJsonStruct)
-	if err != nil {
+	if err := resp.Json(myJsonStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
@@ -365,8 +426,7 @@ func verifyOkResponse(resp *Response, t *testing.T) *BasicGetResponse {
 
 	myJsonStruct := &BasicGetResponse{}
 
-	err := resp.Json(myJsonStruct)
-	if err != nil {
+	if err := resp.Json(myJsonStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 

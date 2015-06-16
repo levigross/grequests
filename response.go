@@ -126,7 +126,6 @@ func (r *Response) Bytes() []byte {
 }
 
 func (r *Response) String() string {
-
 	if err := r.respBytesBuffer(); err != nil {
 		return ""
 	}

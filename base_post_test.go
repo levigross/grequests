@@ -72,9 +72,16 @@ func TestBasicPostRequest(t *testing.T) {
 }
 
 func TestBasicPostRequestUpload(t *testing.T) {
+
+	fd, err := FileUploadFromDisk("test_files/mypassword")
+
+	if err != nil {
+		t.Error("Unable to open file: ", err)
+	}
+
 	resp := <-Post("http://httpbin.org/post",
 		&RequestOptions{
-			File: FileUploadFromDisk("test_files/mypassword"),
+			File: fd,
 			Data: map[string]string{"One": "Two"},
 		})
 

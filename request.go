@@ -157,7 +157,7 @@ func createBasicJsonRequest(httpMethod, userUrl string, ro *RequestOptions) (*ht
 	if err != nil {
 		return nil, err
 	}
-	// The content type must be set to a regular form
+
 	req.Header.Set("Content-Type", "application/json")
 
 	return req, nil
