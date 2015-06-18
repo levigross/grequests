@@ -3,6 +3,7 @@ package grequests
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"io"
 	"net/http"
 	"os"
@@ -18,7 +19,7 @@ type Response struct {
 
 	// We want to abstract (at least at the moment) the Go http.Response object away. So we are going to make use of it
 	// internal but not give the user access
-	resp *http.Response
+	RawResponse *http.Response
 
 	// StatusCode is the HTTP Status Code returned by the HTTP Response. Taken from resp.StatusCode
 	StatusCode int
@@ -37,22 +38,22 @@ func buildResponse(resp *http.Response, err error) *Response {
 
 	return &Response{
 		// If your code is within the 2xx range – the response is considered `Ok`
-		Ok:         resp.StatusCode <= 200 && resp.StatusCode < 300,
-		Error:      nil,
-		resp:       resp,
-		StatusCode: resp.StatusCode,
-		Header:     resp.Header,
+		Ok:          resp.StatusCode <= 200 && resp.StatusCode < 300,
+		Error:       nil,
+		RawResponse: resp,
+		StatusCode:  resp.StatusCode,
+		Header:      resp.Header,
 	}
 }
 
 // Read is part of our ability to support io.ReadCloser if someone wants to make use of the raw body
 func (r *Response) Read(p []byte) (n int, err error) {
-	return r.resp.Body.Read(p)
+	return r.RawResponse.Body.Read(p)
 }
 
 // Close is part of our ability to support io.ReadCloser if someone wants to make use of the raw body
 func (r *Response) Close() error {
-	return r.resp.Body.Close()
+	return r.RawResponse.Body.Close()
 }
 
 // DownloadToFile allows you to download the contents of the response to a file
@@ -82,7 +83,25 @@ func (r *Response) getInternalReader() io.Reader {
 	return r
 }
 
-// JSON is a function that will populate a struct that is provided `userStruct` with the JSON returned within the
+// Xml is a method that will populate a struct that is provided `userStruct` with the XML returned within the
+// response body
+func (r *Response) Xml(userStruct interface{}, charsetReader XMLCharDecoder) error {
+	xmlDecoder := xml.NewDecoder(r.getInternalReader())
+
+	if charsetReader != nil {
+		xmlDecoder.CharsetReader = charsetReader
+	}
+
+	defer r.Close()
+
+	if err := xmlDecoder.Decode(&userStruct); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// Json is a method that will populate a struct that is provided `userStruct` with the JSON returned within the
 // response body
 func (r *Response) Json(userStruct interface{}) error {
 	jsonDecoder := json.NewDecoder(r.getInternalReader())
@@ -106,7 +125,7 @@ func (r *Response) respBytesBuffer() error {
 	defer r.Close()
 
 	r.internalByteBuffer = &bytes.Buffer{}
-	r.internalByteBuffer.Grow(int(r.resp.ContentLength))
+	r.internalByteBuffer.Grow(int(r.RawResponse.ContentLength))
 
 	if _, err := io.Copy(r.internalByteBuffer, r); err != nil && err != io.EOF {
 		return err

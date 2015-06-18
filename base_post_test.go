@@ -1,6 +1,7 @@
 package grequests
 
 import (
+	"encoding/xml"
 	"strings"
 	"testing"
 )
@@ -65,9 +66,43 @@ type BasicPostFileUpload struct {
 	URL    string      `json:"url"`
 }
 
+type XMLPostMessage struct {
+	Name   string
+	Age    int
+	Height int
+}
+
 func TestBasicPostRequest(t *testing.T) {
 	verifyOkPostResponse(<-Post("http://httpbin.org/post",
 		&RequestOptions{Data: map[string]string{"One": "Two"}}), t)
+
+}
+
+func TestXMLPostRequest(t *testing.T) {
+	resp := <-Post("http://httpbin.org/post",
+		&RequestOptions{Xml: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJsonStruct := &BasicPostJsonResponse{}
+
+	if err := resp.Json(myJsonStruct); err != nil {
+		t.Error("Unable to coerce to JSON", err)
+	}
+
+	myXMLStruct := &XMLPostMessage{}
+
+	xml.Unmarshal([]byte(myJsonStruct.Data), myXMLStruct)
+
+	if myXMLStruct.Age != 1 {
+		t.Errorf("Unable to serialize XML response from within JSON %#v ", myXMLStruct)
+	}
 
 }
 
@@ -143,8 +178,7 @@ func TestBasicPostJsonRequest(t *testing.T) {
 
 	myJsonStruct := &BasicPostJsonResponse{}
 
-	err := resp.Json(myJsonStruct)
-	if err != nil {
+	if err := resp.Json(myJsonStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
@@ -198,8 +232,7 @@ func verifyOkPostResponse(resp *Response, t *testing.T) *BasicPostResponse {
 
 	myJsonStruct := &BasicPostResponse{}
 
-	err := resp.Json(myJsonStruct)
-	if err != nil {
+	if err := resp.Json(myJsonStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 

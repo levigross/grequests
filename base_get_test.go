@@ -3,6 +3,8 @@ package grequests
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
+	"io"
 	"os"
 	"testing"
 )
@@ -69,8 +71,50 @@ type BasicGetResponseArgs struct {
 	URL    string `json:"url"`
 }
 
+type GetXMLSample struct {
+	XMLName xml.Name `xml:"slideshow"`
+	Title   string   `xml:"title,attr"`
+	Date    string   `xml:"date,attr"`
+	Author  string   `xml:"author,attr"`
+	Slide   []struct {
+		Type  string `xml:"type,attr"`
+		Title string `xml:"title"`
+	} `xml:"slide"`
+}
+
 func TestGetNoOptions(t *testing.T) {
 	verifyOkResponse(<-Get("http://httpbin.org/get", nil), t)
+}
+
+func xmlAsciiDecoder(charset string, input io.Reader) (io.Reader, error) {
+	return input, nil
+}
+
+func TestGetXMLSerialize(t *testing.T) {
+	resp := <-Get("http://httpbin.org/xml", nil)
+
+	if resp.Error != nil {
+		t.Error("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	userXML := &GetXMLSample{}
+
+	if err := resp.Xml(userXML, xmlAsciiDecoder); err != nil {
+		t.Error("Unable to consume the response as XML: ", err)
+	}
+
+	if userXML.Title != "Sample Slide Show" {
+		t.Errorf("Invalid XML serialization %#v", userXML)
+	}
+
+	if err := resp.Xml(int(123), nil); err == nil {
+		t.Error("Still able to consume XML from used response")
+	}
+
 }
 
 func TestGetNoOptionsChannel(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"encoding/xml"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -26,6 +27,9 @@ type RequestOptions struct {
 
 	// Json can be used when you wish to send JSON within the request body
 	Json interface{}
+
+	// Xml can be used if you wish to send XML within the request body
+	Xml interface{}
 
 	// If you want to add custom HTTP headers to the request, this is your friend
 	Headers map[string]string
@@ -102,6 +106,10 @@ func buildPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Req
 		return createBasicJsonRequest(httpMethod, userUrl, ro)
 	}
 
+	if ro.Xml != nil {
+		return createBasicXmlRequest(httpMethod, userUrl, ro)
+	}
+
 	if ro.File == nil {
 		return createBasicPostRequest(httpMethod, userUrl, ro)
 	}
@@ -110,6 +118,22 @@ func buildPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Req
 	return createMultiPartPostRequest(httpMethod, userUrl, ro)
 }
 
+func createBasicXmlRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+	tempBuffer := &bytes.Buffer{}
+
+	xmlEncoder := xml.NewEncoder(tempBuffer)
+	xmlEncoder.Encode(ro.Xml)
+
+	req, err := http.NewRequest(httpMethod, userUrl, tempBuffer)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/xml")
+
+	return req, nil
+
+}
 func createMultiPartPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
 	defer ro.File.FileContents.Close()
 
