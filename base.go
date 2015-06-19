@@ -9,12 +9,21 @@ func Get(url string, ro *RequestOptions) chan *Response {
 	return doRequest("GET", url, ro)
 }
 
-func Put(url string, ro *RequestOptions) chan *Response { return nil }
+func Put(url string, ro *RequestOptions) chan *Response {
+	return doRequest("PUT", url, ro)
+}
+
+func Patch(url string, ro *RequestOptions) chan *Response {
+	return doRequest("PATCH", url, ro)
+}
+
+func Delete(url string, ro *RequestOptions) chan *Response {
+	return doRequest("DELETE", url, ro)
+}
 
 func Post(url string, ro *RequestOptions) chan *Response {
 	return doRequest("POST", url, ro)
 }
-func Delete(url string, ro *RequestOptions) chan *Response { return nil }
 
 func Head(url string, ro *RequestOptions) chan *Response {
 	return doRequest("HEAD", url, ro)

@@ -245,7 +245,7 @@ func verifyOkPostResponse(resp *Response, t *testing.T) *BasicPostResponse {
 	}
 
 	if myJsonStruct.Form.One != "Two" {
-		t.Error("Invalid post response: ", myJsonStruct.Form.One)
+		t.Errorf("Invalid post response: %#v", myJsonStruct.Form)
 	}
 
 	if resp.Bytes() != nil {

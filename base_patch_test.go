@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestBasicDeleteRequest(t *testing.T) {
-	resp := <-Delete("http://httpbin.org/delete", nil)
+func TestBasicPatchRequest(t *testing.T) {
+	resp := <-Patch("http://httpbin.org/patch", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)

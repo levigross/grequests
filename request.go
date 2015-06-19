@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -65,22 +66,14 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 	}
 	// Create our own HTTP client
 	httpClient := buildHTTPClient(ro)
+
 	// Build our URL
 	if ro.Params != nil {
 		url = buildUrlParams(url, ro.Params)
 	}
 
 	// Build the request
-	var (
-		req *http.Request
-		err error
-	)
-
-	if IsIdempotentMethod(httpMethod) {
-		req, err = http.NewRequest(httpMethod, url, nil)
-	} else {
-		req, err = buildNonIdempotentRequest(httpMethod, url, ro)
-	}
+	req, err := buildHTTPRequest(httpMethod, url, ro)
 
 	if err != nil {
 		return nil, err
@@ -92,16 +85,7 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 	return httpClient.Do(req)
 }
 
-func buildNonIdempotentRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
-	if httpMethod == "POST" {
-		return buildPostRequest(httpMethod, userUrl, ro)
-	}
-
-	return nil, nil // Placeholder
-
-}
-
-func buildPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func buildHTTPRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
 	if ro.Json != nil {
 		return createBasicJsonRequest(httpMethod, userUrl, ro)
 	}
@@ -110,12 +94,34 @@ func buildPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Req
 		return createBasicXmlRequest(httpMethod, userUrl, ro)
 	}
 
-	if ro.File == nil {
-		return createBasicPostRequest(httpMethod, userUrl, ro)
+	if ro.File != nil {
+		return createFileUploadRequest(httpMethod, userUrl, ro)
 	}
 
-	// Our only other option is a multipart POST
-	return createMultiPartPostRequest(httpMethod, userUrl, ro)
+	if ro.Data != nil {
+		return createBasicRequest(httpMethod, userUrl, ro)
+	}
+
+	return http.NewRequest(httpMethod, userUrl, nil)
+}
+
+func createFileUploadRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+	if httpMethod == "POST" {
+		return createMultiPartPostRequest(httpMethod, userUrl, ro)
+	}
+
+	// This may be a PUT or PATCH request so we will just put the raw io.ReadCloser in the request body
+
+	req, err := http.NewRequest(httpMethod, userUrl, ro.File.FileContents)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", mime.TypeByExtension(ro.File.FileName))
+
+	return req, nil
+
 }
 
 func createBasicXmlRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
@@ -187,7 +193,7 @@ func createBasicJsonRequest(httpMethod, userUrl string, ro *RequestOptions) (*ht
 	return req, nil
 
 }
-func createBasicPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func createBasicRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
 
 	req, err := http.NewRequest(httpMethod, userUrl, strings.NewReader(encodePostValues(ro.Data)))
 	if err != nil {
@@ -206,7 +212,7 @@ func encodePostValues(postValues map[string]string) string {
 		urlValues.Set(key, value)
 	}
 
-	return urlValues.Encode() // This will sort and encode all of the string values
+	return urlValues.Encode() // This will sort all of the string values
 }
 
 func buildHTTPClient(ro *RequestOptions) *http.Client {
@@ -256,6 +262,8 @@ func addHTTPHeaders(ro *RequestOptions, req *http.Request) {
 
 	if ro.UserAgent != "" {
 		req.Header.Set("User-Agent", ro.UserAgent)
+	} else {
+		req.Header.Set("User-Agent", localUserAgent)
 	}
 
 	if ro.Auth != nil {
