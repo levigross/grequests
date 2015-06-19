@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -144,8 +145,6 @@ func createBasicXmlRequest(httpMethod, userUrl string, ro *RequestOptions) (*htt
 
 }
 func createMultiPartPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
-	defer ro.File.FileContents.Close()
-
 	requestBody := &bytes.Buffer{}
 
 	multipartWriter := multipart.NewWriter(requestBody)
@@ -155,9 +154,14 @@ func createMultiPartPostRequest(httpMethod, userUrl string, ro *RequestOptions) 
 		return nil, err
 	}
 
+	if ro.File.FileContents == nil {
+		return nil, errors.New("FileContents cannot be nil")
+	}
+
 	if _, err = io.Copy(writer, ro.File.FileContents); err != nil && err != io.EOF {
 		return nil, err
 	}
+	defer ro.File.FileContents.Close()
 
 	// Populate the other parts of the form (if there are any)
 	for key, value := range ro.Data {

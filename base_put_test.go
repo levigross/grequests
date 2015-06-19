@@ -39,3 +39,21 @@ func TestBasicPutUploadRequest(t *testing.T) {
 	}
 
 }
+
+func TestBasicPutUploadRequestInvalidURL(t *testing.T) {
+	fd, err := FileUploadFromDisk("test_files/mypassword")
+
+	if err != nil {
+		t.Error("Unable to open file: ", err)
+	}
+
+	resp := <-Put("%../dir/",
+		&RequestOptions{
+			File: fd,
+			Data: map[string]string{"One": "Two"},
+		})
+
+	if resp.Error == nil {
+		t.Fatal("Somehow able to make the request")
+	}
+}

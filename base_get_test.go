@@ -99,7 +99,7 @@ func xmlAsciiDecoder(charset string, input io.Reader) (io.Reader, error) {
 }
 
 func TestGetInvalidURL(t *testing.T) {
-	resp := <-Get("#481203984091238049üudsa", nil)
+	resp := <-Get("%../dir/", &RequestOptions{Params: map[string]string{"1": "2"}})
 
 	if resp.Error == nil {
 		t.Error("Some how the request was valid to make request", resp.Error)

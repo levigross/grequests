@@ -79,14 +79,66 @@ func TestBasicPostRequest(t *testing.T) {
 }
 
 func TestBasicPostRequestInvalidURL(t *testing.T) {
-	resp := <-Post("#onetwothree",
-		&RequestOptions{Data: map[string]string{"One": "Two"}})
+	resp := <-Post("%../dir/",
+		&RequestOptions{Data: map[string]string{"One": "Two"},
+			Params: map[string]string{"1": "2"}})
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
-
 	}
 
+}
+
+func TestXMLPostRequestInvalidURL(t *testing.T) {
+	resp := <-Post("%../dir/",
+		&RequestOptions{Xml: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
+
+	if resp.Error == nil {
+		t.Error("Somehow the request went through")
+	}
+}
+
+func TestBasicPostJsonRequestInvalidURL(t *testing.T) {
+	resp := <-Post("%../dir/",
+		&RequestOptions{Json: map[string]string{"One": "Two"}, IsAjax: true})
+
+	if resp.Error == nil {
+		t.Error("Somehow the request went through")
+	}
+}
+
+func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
+
+	fd, err := FileUploadFromDisk("test_files/mypassword")
+
+	if err != nil {
+		t.Error("Unable to open file: ", err)
+	}
+
+	defer fd.FileContents.Close()
+
+	resp := <-Post("%../dir/",
+		&RequestOptions{
+			File: fd,
+			Data: map[string]string{"One": "Two"},
+		})
+
+	if resp.Error == nil {
+		t.Fatal("Somehow able to make the request")
+	}
+}
+
+func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
+
+	resp := <-Post("%../dir/",
+		&RequestOptions{
+			File: &FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil},
+			Data: map[string]string{"One": "Two"},
+		})
+
+	if resp.Error == nil {
+		t.Fatal("Somehow able to make the request")
+	}
 }
 
 func TestXMLPostRequest(t *testing.T) {
