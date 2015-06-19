@@ -78,6 +78,17 @@ func TestBasicPostRequest(t *testing.T) {
 
 }
 
+func TestBasicPostRequestInvalidURL(t *testing.T) {
+	resp := <-Post("#onetwothree",
+		&RequestOptions{Data: map[string]string{"One": "Two"}})
+
+	if resp.Error == nil {
+		t.Error("Somehow the request went through")
+
+	}
+
+}
+
 func TestXMLPostRequest(t *testing.T) {
 	resp := <-Post("http://httpbin.org/post",
 		&RequestOptions{Xml: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})

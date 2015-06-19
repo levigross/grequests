@@ -86,8 +86,24 @@ func TestGetNoOptions(t *testing.T) {
 	verifyOkResponse(<-Get("http://httpbin.org/get", nil), t)
 }
 
+func TestGetNoOptionsGzip(t *testing.T) {
+	verifyOkResponse(<-Get("http://httpbin.org/gzip", nil), t)
+}
+
+//func TestGetNoOptionsDeflate(t *testing.T) {
+//	verifyOkResponse(<-Get("http://httpbin.org/deflate", nil), t)
+//}
+
 func xmlAsciiDecoder(charset string, input io.Reader) (io.Reader, error) {
 	return input, nil
+}
+
+func TestGetInvalidURL(t *testing.T) {
+	resp := <-Get("#481203984091238049üudsa", nil)
+
+	if resp.Error == nil {
+		t.Error("Some how the request was valid to make request", resp.Error)
+	}
 }
 
 func TestGetXMLSerialize(t *testing.T) {
@@ -472,10 +488,6 @@ func verifyOkResponse(resp *Response, t *testing.T) *BasicGetResponse {
 
 	if err := resp.Json(myJsonStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
-	}
-
-	if myJsonStruct.URL != "http://httpbin.org/get" {
-		t.Error("For some reason the URL isn't the same", myJsonStruct.URL)
 	}
 
 	if myJsonStruct.Headers.Host != "httpbin.org" {

@@ -39,6 +39,9 @@ type RequestOptions struct {
 	// Go's TLS verify mechanism doesn't validate if a certificate has been revoked
 	InsecureSkipVerify bool
 
+	// DisableCompression will disable gzip compression on requests
+	DisableCompression bool
+
 	// UserAgent allows you to set an arbitrary custom user agent
 	UserAgent string
 
@@ -216,15 +219,12 @@ func encodePostValues(postValues map[string]string) string {
 }
 
 func buildHTTPClient(ro *RequestOptions) *http.Client {
-	httpClient := &http.Client{}
-
-	if ro.InsecureSkipVerify == true {
-		httpClient.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+	return &http.Client{
+		Transport: &http.Transport{
+			DisableCompression: ro.DisableCompression,
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
+		},
 	}
-
-	return httpClient
 
 }
 

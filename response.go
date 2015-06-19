@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -123,6 +124,10 @@ func (r *Response) respBytesBuffer() error {
 	}
 
 	defer r.Close()
+
+	if r.RawResponse.ContentLength < 0 {
+		return fmt.Errorf("Response content length is invalid %v", r.RawResponse.ContentLength)
+	}
 
 	r.internalByteBuffer = &bytes.Buffer{}
 	r.internalByteBuffer.Grow(int(r.RawResponse.ContentLength))
