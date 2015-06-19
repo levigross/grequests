@@ -18,7 +18,7 @@ import (
 type RequestOptions struct {
 
 	// Data is a map of key values that will eventually convert into the query string of a GET request or the
-	// body of a POST request. Items can be passed in as an interface (which makes the map easier to construct)
+	// body of a POST request.
 	Data map[string]string
 
 	// Params is a map of query strings that may be used within a GET request
