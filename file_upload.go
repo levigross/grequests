@@ -5,8 +5,13 @@ import (
 	"os"
 )
 
+// FileUpload is a struct that is used to specify the file that a User
+// wishes to upload.
 type FileUpload struct {
-	FileName     string
+	// Filename is the name of the file that you wish to upload. We use this to guess the mimetype as well as pass it onto the server
+	FileName string
+
+	// FileContents is happy as long as you pass it a io.ReadCloser (which most file use anyways)
 	FileContents io.ReadCloser
 }
 
@@ -14,7 +19,6 @@ type FileUpload struct {
 func FileUploadFromDisk(fileName string) (*FileUpload, error) {
 	fd, err := os.Open(fileName)
 
-	// I should really log the error
 	if err != nil {
 		return nil, err
 	}

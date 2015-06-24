@@ -10,6 +10,7 @@ import (
 	"os"
 )
 
+// Response is what is returned to a user when they fire off a request
 type Response struct {
 
 	// Ok is a boolean flag that validates that the server returned a 2xx code
@@ -140,6 +141,7 @@ func (r *Response) respBytesBuffer() error {
 
 }
 
+// Bytes returns the response as a byte array
 func (r *Response) Bytes() []byte {
 	if err := r.respBytesBuffer(); err != nil {
 		return nil
@@ -149,6 +151,7 @@ func (r *Response) Bytes() []byte {
 
 }
 
+// String returns the response as a string
 func (r *Response) String() string {
 	if err := r.respBytesBuffer(); err != nil {
 		return ""

@@ -20,6 +20,11 @@ Features
 - Easy file downloads
 - Support for the following HTTP verbs `GET, HEAD, POST, PUT, DELETE, PATCH, OPTIONS`
 
+Install
+=======
+`go get -u github.com/levigross/grequests`
+
+
 Basic Example
 =========
 Basic GET request:
@@ -34,5 +39,30 @@ fmt.Println(resp.String())
 //     "Accept": "*/*",
 //     "Host": "httpbin.org",
 ```
+Because all of the HTTP methods return a channel, you can read the in a `select` statement as well.
 
-As you can see – every request returns a channel
+```go
+respChan := Get("http://httpbin.org/get", nil)
+	select {
+	case resp := <-respChan:
+		fmt.Println(resp.String())
+    // {
+    //   "args": {},
+    //   "headers": {
+    //     "Accept": "*/*",
+    //     "Host": "httpbin.org",
+	}
+
+```
+
+It is very important to check the `.Error` property of the `Response` e.g:
+
+```go
+resp := <-Get("http://httpbin.org/xml", nil)
+
+if resp.Error != nil {
+	log.Fatalln("Unable to make request", resp.Error)
+}
+```
+
+If an error occurs all of the other properties and methods of a `Response` will be `nil`

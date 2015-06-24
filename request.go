@@ -89,34 +89,34 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 	return httpClient.Do(req)
 }
 
-func buildHTTPRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func buildHTTPRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 	if ro.Json != nil {
-		return createBasicJsonRequest(httpMethod, userUrl, ro)
+		return createBasicJsonRequest(httpMethod, userURL, ro)
 	}
 
 	if ro.Xml != nil {
-		return createBasicXmlRequest(httpMethod, userUrl, ro)
+		return createBasicXmlRequest(httpMethod, userURL, ro)
 	}
 
 	if ro.File != nil {
-		return createFileUploadRequest(httpMethod, userUrl, ro)
+		return createFileUploadRequest(httpMethod, userURL, ro)
 	}
 
 	if ro.Data != nil {
-		return createBasicRequest(httpMethod, userUrl, ro)
+		return createBasicRequest(httpMethod, userURL, ro)
 	}
 
-	return http.NewRequest(httpMethod, userUrl, nil)
+	return http.NewRequest(httpMethod, userURL, nil)
 }
 
-func createFileUploadRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 	if httpMethod == "POST" {
-		return createMultiPartPostRequest(httpMethod, userUrl, ro)
+		return createMultiPartPostRequest(httpMethod, userURL, ro)
 	}
 
 	// This may be a PUT or PATCH request so we will just put the raw io.ReadCloser in the request body
 
-	req, err := http.NewRequest(httpMethod, userUrl, ro.File.FileContents)
+	req, err := http.NewRequest(httpMethod, userURL, ro.File.FileContents)
 
 	if err != nil {
 		return nil, err
@@ -128,13 +128,13 @@ func createFileUploadRequest(httpMethod, userUrl string, ro *RequestOptions) (*h
 
 }
 
-func createBasicXmlRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func createBasicXmlRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 	tempBuffer := &bytes.Buffer{}
 
 	xmlEncoder := xml.NewEncoder(tempBuffer)
 	xmlEncoder.Encode(ro.Xml)
 
-	req, err := http.NewRequest(httpMethod, userUrl, tempBuffer)
+	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func createBasicXmlRequest(httpMethod, userUrl string, ro *RequestOptions) (*htt
 	return req, nil
 
 }
-func createMultiPartPostRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 	requestBody := &bytes.Buffer{}
 
 	multipartWriter := multipart.NewWriter(requestBody)
@@ -172,7 +172,7 @@ func createMultiPartPostRequest(httpMethod, userUrl string, ro *RequestOptions) 
 		return nil, err
 	}
 
-	req, err := http.NewRequest(httpMethod, userUrl, requestBody)
+	req, err := http.NewRequest(httpMethod, userURL, requestBody)
 
 	if err != nil {
 		return nil, err
@@ -183,14 +183,14 @@ func createMultiPartPostRequest(httpMethod, userUrl string, ro *RequestOptions) 
 	return req, err
 }
 
-func createBasicJsonRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func createBasicJsonRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 
 	tempBuffer := &bytes.Buffer{}
 
 	jsonEncoder := json.NewEncoder(tempBuffer)
 	jsonEncoder.Encode(ro.Json)
 
-	req, err := http.NewRequest(httpMethod, userUrl, tempBuffer)
+	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
 	if err != nil {
 		return nil, err
 	}
@@ -200,9 +200,9 @@ func createBasicJsonRequest(httpMethod, userUrl string, ro *RequestOptions) (*ht
 	return req, nil
 
 }
-func createBasicRequest(httpMethod, userUrl string, ro *RequestOptions) (*http.Request, error) {
+func createBasicRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 
-	req, err := http.NewRequest(httpMethod, userUrl, strings.NewReader(encodePostValues(ro.Data)))
+	req, err := http.NewRequest(httpMethod, userURL, strings.NewReader(encodePostValues(ro.Data)))
 	if err != nil {
 		return nil, err
 	}
@@ -235,11 +235,11 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 // buildUrlParams returns a URL with all of the params
 // Note: This function will override current URL params if they contradict what is provided in the map
 // That is what the "magic" is on the last line
-func buildUrlParams(userUrl string, params map[string]string) string {
-	parsedUrl, err := url.Parse(userUrl)
+func buildUrlParams(userURL string, params map[string]string) string {
+	parsedUrl, err := url.Parse(userURL)
 
 	if err != nil {
-		return userUrl
+		return userURL
 	}
 
 	parsedQuery, err := url.ParseQuery(parsedUrl.RawQuery)
