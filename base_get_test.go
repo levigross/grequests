@@ -12,12 +12,12 @@ import (
 type BasicGetResponse struct {
 	Args    struct{} `json:"args"`
 	Headers struct {
-		Accept          string `json:"Accept"`
-		Accept_Encoding string `json:"Accept-Encoding"`
-		Accept_Language string `json:"Accept-Language"`
-		Dnt             string `json:"Dst"`
-		Host            string `json:"Host"`
-		User_Agent      string `json:"User-Agent"`
+		Accept         string `json:"Accept"`
+		AcceptEncoding string `json:"Accept-Encoding"`
+		AcceptLanguage string `json:"Accept-Language"`
+		Dnt            string `json:"Dst"`
+		Host           string `json:"Host"`
+		UserAgent      string `json:"User-Agent"`
 	} `json:"headers"`
 	Origin string `json:"origin"`
 	URL    string `json:"url"`
@@ -26,13 +26,13 @@ type BasicGetResponse struct {
 type BasicGetResponseNewHeader struct {
 	Args    struct{} `json:"args"`
 	Headers struct {
-		Accept             string `json:"Accept"`
-		Accept_Encoding    string `json:"Accept-Encoding"`
-		Accept_Language    string `json:"Accept-Language"`
-		Dnt                string `json:"Dst"`
-		Host               string `json:"Host"`
-		User_Agent         string `json:"User-Agent"`
-		X_Wonderful_Header string `json:"X-Wonderful-Header"`
+		Accept           string `json:"Accept"`
+		AcceptEncoding   string `json:"Accept-Encoding"`
+		AcceptLanguage   string `json:"Accept-Language"`
+		Dnt              string `json:"Dst"`
+		Host             string `json:"Host"`
+		UserAgent        string `json:"User-Agent"`
+		XWonderfulHeader string `json:"X-Wonderful-Header"`
 	} `json:"headers"`
 	Origin string `json:"origin"`
 	URL    string `json:"url"`
@@ -41,13 +41,13 @@ type BasicGetResponseNewHeader struct {
 type BasicGetResponseBasicAuth struct {
 	Args    struct{} `json:"args"`
 	Headers struct {
-		Accept          string `json:"Accept"`
-		Accept_Encoding string `json:"Accept-Encoding"`
-		Accept_Language string `json:"Accept-Language"`
-		Dnt             string `json:"Dst"`
-		Host            string `json:"Host"`
-		User_Agent      string `json:"User-Agent"`
-		Authorization   string `json:"Authorization"`
+		Accept         string `json:"Accept"`
+		AcceptEncoding string `json:"Accept-Encoding"`
+		AcceptLanguage string `json:"Accept-Language"`
+		Dnt            string `json:"Dst"`
+		Host           string `json:"Host"`
+		UserAgent      string `json:"User-Agent"`
+		Authorization  string `json:"Authorization"`
 	} `json:"headers"`
 	Origin string `json:"origin"`
 	URL    string `json:"url"`
@@ -59,13 +59,13 @@ type BasicGetResponseArgs struct {
 		Hello   string `json:"Hello"`
 	} `json:"args"`
 	Headers struct {
-		Accept          string `json:"Accept"`
-		Accept_Encoding string `json:"Accept-Encoding"`
-		Accept_Language string `json:"Accept-Language"`
-		Dnt             string `json:"Dst"`
-		Host            string `json:"Host"`
-		User_Agent      string `json:"User-Agent"`
-		Authorization   string `json:"Authorization"`
+		Accept         string `json:"Accept"`
+		AcceptEncoding string `json:"Accept-Encoding"`
+		AcceptLanguage string `json:"Accept-Language"`
+		Dnt            string `json:"Dst"`
+		Host           string `json:"Host"`
+		UserAgent      string `json:"User-Agent"`
+		Authorization  string `json:"Authorization"`
 	} `json:"headers"`
 	Origin string `json:"origin"`
 	URL    string `json:"url"`
@@ -94,7 +94,7 @@ func TestGetNoOptionsGzip(t *testing.T) {
 //	verifyOkResponse(<-Get("http://httpbin.org/deflate", nil), t)
 //}
 
-func xmlAsciiDecoder(charset string, input io.Reader) (io.Reader, error) {
+func xmlASCIIDecoder(charset string, input io.Reader) (io.Reader, error) {
 	return input, nil
 }
 
@@ -119,7 +119,7 @@ func TestGetXMLSerialize(t *testing.T) {
 
 	userXML := &GetXMLSample{}
 
-	if err := resp.Xml(userXML, xmlAsciiDecoder); err != nil {
+	if err := resp.XML(userXML, xmlASCIIDecoder); err != nil {
 		t.Error("Unable to consume the response as XML: ", err)
 	}
 
@@ -127,7 +127,7 @@ func TestGetXMLSerialize(t *testing.T) {
 		t.Errorf("Invalid XML serialization %#v", userXML)
 	}
 
-	if err := resp.Xml(int(123), nil); err == nil {
+	if err := resp.XML(int(123), nil); err == nil {
 		t.Error("Still able to consume XML from used response")
 	}
 
@@ -145,7 +145,7 @@ func TestGetCustomUserAgent(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1"}
 	resp := <-Get("http://httpbin.org/get", ro)
 	jsonResp := verifyOkResponse(resp, t)
-	if jsonResp.Headers.User_Agent != "LeviBot 0.1" {
+	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
 		t.Error("User agent header not properly set")
 	}
 }
@@ -163,15 +163,15 @@ func TestGetBasicAuth(t *testing.T) {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicGetResponseBasicAuth{}
+	myJSONStruct := &BasicGetResponseBasicAuth{}
 
-	err := resp.Json(myJsonStruct)
+	err := resp.JSON(myJSONStruct)
 	if err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
-	if myJsonStruct.Headers.Authorization != "Basic TGV2aTpCb3Q=" {
-		t.Error("Unable to set HTTP basic auth", myJsonStruct.Headers)
+	if myJSONStruct.Headers.Authorization != "Basic TGV2aTpCb3Q=" {
+		t.Error("Unable to set HTTP basic auth", myJSONStruct.Headers)
 	}
 
 }
@@ -190,15 +190,15 @@ func TestGetCustomHeader(t *testing.T) {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicGetResponseNewHeader{}
+	myJSONStruct := &BasicGetResponseNewHeader{}
 
-	err := resp.Json(myJsonStruct)
+	err := resp.JSON(myJSONStruct)
 	if err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
-	if myJsonStruct.Headers.X_Wonderful_Header != "1" {
-		t.Error("Unable to set custom HTTP header", myJsonStruct.Headers)
+	if myJSONStruct.Headers.XWonderfulHeader != "1" {
+		t.Error("Unable to set custom HTTP header", myJSONStruct.Headers)
 	}
 }
 
@@ -273,17 +273,17 @@ func TestGetFileDownload(t *testing.T) {
 
 	jsonDecoder := json.NewDecoder(fd)
 
-	myJsonStruct := &BasicGetResponse{}
+	myJSONStruct := &BasicGetResponse{}
 
-	if err := jsonDecoder.Decode(myJsonStruct); err != nil {
+	if err := jsonDecoder.Decode(myJSONStruct); err != nil {
 		t.Error("Unable to cocerce file to JSON ", err)
 	}
 
-	if myJsonStruct.URL != "http://httpbin.org/get" {
-		t.Error("For some reason the URL isn't the same", myJsonStruct.URL)
+	if myJSONStruct.URL != "http://httpbin.org/get" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
 	}
 
-	if myJsonStruct.Headers.Host != "httpbin.org" {
+	if myJSONStruct.Headers.Host != "httpbin.org" {
 		t.Error("The host header is invalid")
 	}
 
@@ -318,7 +318,7 @@ func TestJsonConsumedResponse(t *testing.T) {
 
 	resp.ClearInternalBuffer()
 
-	if err := resp.Json(struct{}{}); err == nil {
+	if err := resp.JSON(struct{}{}); err == nil {
 		t.Error("Struct should not be able to hold JSON: ")
 	}
 }
@@ -441,18 +441,18 @@ func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicGetResponseArgs{}
+	myJSONStruct := &BasicGetResponseArgs{}
 
-	if err := resp.Json(myJsonStruct); err != nil {
+	if err := resp.JSON(myJSONStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
-	if myJsonStruct.Args.Goodbye != "World" && myJsonStruct.Args.Hello != "World" {
-		t.Error("Args not properly set", myJsonStruct.Args)
+	if myJSONStruct.Args.Goodbye != "World" && myJSONStruct.Args.Hello != "World" {
+		t.Error("Args not properly set", myJSONStruct.Args)
 	}
 
-	if myJsonStruct.URL != "http://httpbin.org/get?Goodbye=World&Hello=World" {
-		t.Error("Url is not properly constructed", myJsonStruct.URL)
+	if myJSONStruct.URL != "http://httpbin.org/get?Goodbye=World&Hello=World" {
+		t.Error("Url is not properly constructed", myJSONStruct.URL)
 	}
 
 	if resp.Bytes() != nil {
@@ -467,7 +467,7 @@ func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 		t.Error("Response returned a non-200 code")
 	}
 
-	return myJsonStruct
+	return myJSONStruct
 }
 
 // verifyResponse will verify the following conditions
@@ -484,13 +484,13 @@ func verifyOkResponse(resp *Response, t *testing.T) *BasicGetResponse {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicGetResponse{}
+	myJSONStruct := &BasicGetResponse{}
 
-	if err := resp.Json(myJsonStruct); err != nil {
+	if err := resp.JSON(myJSONStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
-	if myJsonStruct.Headers.Host != "httpbin.org" {
+	if myJSONStruct.Headers.Host != "httpbin.org" {
 		t.Error("The host header is invalid")
 	}
 
@@ -506,5 +506,5 @@ func verifyOkResponse(resp *Response, t *testing.T) *BasicGetResponse {
 		t.Error("Response returned a non-200 code")
 	}
 
-	return myJsonStruct
+	return myJSONStruct
 }

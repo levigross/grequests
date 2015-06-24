@@ -27,11 +27,11 @@ type RequestOptions struct {
 	// Files is where you can include files to upload. The use of this data structure is limited to POST requests
 	File *FileUpload
 
-	// Json can be used when you wish to send JSON within the request body
-	Json interface{}
+	// JSON can be used when you wish to send JSON within the request body
+	JSON interface{}
 
-	// Xml can be used if you wish to send XML within the request body
-	Xml interface{}
+	// XML can be used if you wish to send XML within the request body
+	XML interface{}
 
 	// If you want to add custom HTTP headers to the request, this is your friend
 	Headers map[string]string
@@ -56,7 +56,7 @@ type RequestOptions struct {
 }
 
 func doRequest(requestVerb, url string, ro *RequestOptions) chan *Response {
-	responseChan := make(chan *Response)
+	responseChan := make(chan *Response, 1)
 	go func() {
 		responseChan <- buildResponse(buildRequest(requestVerb, url, ro))
 	}()
@@ -73,7 +73,7 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 
 	// Build our URL
 	if ro.Params != nil {
-		url = buildUrlParams(url, ro.Params)
+		url = buildURLParams(url, ro.Params)
 	}
 
 	// Build the request
@@ -90,12 +90,12 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 }
 
 func buildHTTPRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
-	if ro.Json != nil {
-		return createBasicJsonRequest(httpMethod, userURL, ro)
+	if ro.JSON != nil {
+		return createBasicJSONRequest(httpMethod, userURL, ro)
 	}
 
-	if ro.Xml != nil {
-		return createBasicXmlRequest(httpMethod, userURL, ro)
+	if ro.XML != nil {
+		return createBasicXMLRequest(httpMethod, userURL, ro)
 	}
 
 	if ro.File != nil {
@@ -128,11 +128,11 @@ func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*h
 
 }
 
-func createBasicXmlRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
+func createBasicXMLRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 	tempBuffer := &bytes.Buffer{}
 
 	xmlEncoder := xml.NewEncoder(tempBuffer)
-	xmlEncoder.Encode(ro.Xml)
+	xmlEncoder.Encode(ro.XML)
 
 	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
 	if err != nil {
@@ -155,7 +155,7 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 	}
 
 	if ro.File.FileContents == nil {
-		return nil, errors.New("FileContents cannot be nil")
+		return nil, errors.New("pointer FileContents cannot be nil")
 	}
 
 	if _, err = io.Copy(writer, ro.File.FileContents); err != nil && err != io.EOF {
@@ -183,12 +183,12 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 	return req, err
 }
 
-func createBasicJsonRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
+func createBasicJSONRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 
 	tempBuffer := &bytes.Buffer{}
 
 	jsonEncoder := json.NewEncoder(tempBuffer)
-	jsonEncoder.Encode(ro.Json)
+	jsonEncoder.Encode(ro.JSON)
 
 	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
 	if err != nil {
@@ -232,25 +232,25 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 
 }
 
-// buildUrlParams returns a URL with all of the params
+// buildURLParams returns a URL with all of the params
 // Note: This function will override current URL params if they contradict what is provided in the map
 // That is what the "magic" is on the last line
-func buildUrlParams(userURL string, params map[string]string) string {
-	parsedUrl, err := url.Parse(userURL)
+func buildURLParams(userURL string, params map[string]string) string {
+	parsedURL, err := url.Parse(userURL)
 
 	if err != nil {
 		return userURL
 	}
 
-	parsedQuery, err := url.ParseQuery(parsedUrl.RawQuery)
+	parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
 
 	for key, value := range params {
 		parsedQuery.Set(key, value)
 	}
 
 	return strings.Join(
-		[]string{strings.Replace(parsedUrl.String(),
-			"?"+parsedUrl.RawQuery, "", -1),
+		[]string{strings.Replace(parsedURL.String(),
+			"?"+parsedURL.RawQuery, "", -1),
 			parsedQuery.Encode()},
 		"?")
 }

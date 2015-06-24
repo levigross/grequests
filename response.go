@@ -85,9 +85,9 @@ func (r *Response) getInternalReader() io.Reader {
 	return r
 }
 
-// Xml is a method that will populate a struct that is provided `userStruct` with the XML returned within the
+// XML is a method that will populate a struct that is provided `userStruct` with the XML returned within the
 // response body
-func (r *Response) Xml(userStruct interface{}, charsetReader XMLCharDecoder) error {
+func (r *Response) XML(userStruct interface{}, charsetReader XMLCharDecoder) error {
 	xmlDecoder := xml.NewDecoder(r.getInternalReader())
 
 	if charsetReader != nil {
@@ -103,9 +103,9 @@ func (r *Response) Xml(userStruct interface{}, charsetReader XMLCharDecoder) err
 	return nil
 }
 
-// Json is a method that will populate a struct that is provided `userStruct` with the JSON returned within the
+// JSON is a method that will populate a struct that is provided `userStruct` with the JSON returned within the
 // response body
-func (r *Response) Json(userStruct interface{}) error {
+func (r *Response) JSON(userStruct interface{}) error {
 	jsonDecoder := json.NewDecoder(r.getInternalReader())
 	defer r.Close()
 
@@ -127,7 +127,7 @@ func (r *Response) respBytesBuffer() error {
 	defer r.Close()
 
 	if r.RawResponse.ContentLength < 0 {
-		return fmt.Errorf("Response content length is invalid %v", r.RawResponse.ContentLength)
+		return fmt.Errorf("response content length is invalid %v", r.RawResponse.ContentLength)
 	}
 
 	r.internalByteBuffer = &bytes.Buffer{}

@@ -14,29 +14,29 @@ type BasicPostResponse struct {
 		One string `json:"one"`
 	} `json:"form"`
 	Headers struct {
-		Accept         string `json:"Accept"`
-		Content_Length string `json:"Content-Length"`
-		Content_Type   string `json:"Content-Type"`
-		Host           string `json:"Host"`
-		User_Agent     string `json:"User-Agent"`
+		Accept        string `json:"Accept"`
+		ContentLength string `json:"Content-Length"`
+		ContentType   string `json:"Content-Type"`
+		Host          string `json:"Host"`
+		UserAgent     string `json:"User-Agent"`
 	} `json:"headers"`
 	JSON   interface{} `json:"json"`
 	Origin string      `json:"origin"`
 	URL    string      `json:"url"`
 }
 
-type BasicPostJsonResponse struct {
+type BasicPostJSONResponse struct {
 	Args    struct{} `json:"args"`
 	Data    string   `json:"data"`
 	Files   struct{} `json:"files"`
 	Form    struct{} `json:"form"`
 	Headers struct {
-		Accept_Encoding string `json:"Accept-Encoding"`
-		Content_Length  string `json:"Content-Length"`
-		Content_Type    string `json:"Content-Type"`
-		Host            string `json:"Host"`
-		User_Agent      string `json:"User-Agent"`
-		XRequestedWith  string `json:"X-Requested-With"`
+		AcceptEncoding string `json:"Accept-Encoding"`
+		ContentLength  string `json:"Content-Length"`
+		ContentType    string `json:"Content-Type"`
+		Host           string `json:"Host"`
+		UserAgent      string `json:"User-Agent"`
+		XRequestedWith string `json:"X-Requested-With"`
 	} `json:"headers"`
 	JSON struct {
 		One string `json:"One"`
@@ -55,11 +55,11 @@ type BasicPostFileUpload struct {
 		One string `json:"one"`
 	} `json:"form"`
 	Headers struct {
-		Accept_Encoding string `json:"Accept-Encoding"`
-		Content_Length  string `json:"Content-Length"`
-		Content_Type    string `json:"Content-Type"`
-		Host            string `json:"Host"`
-		User_Agent      string `json:"User-Agent"`
+		AcceptEncoding string `json:"Accept-Encoding"`
+		ContentLength  string `json:"Content-Length"`
+		ContentType    string `json:"Content-Type"`
+		Host           string `json:"Host"`
+		UserAgent      string `json:"User-Agent"`
 	} `json:"headers"`
 	JSON   interface{} `json:"json"`
 	Origin string      `json:"origin"`
@@ -91,7 +91,7 @@ func TestBasicPostRequestInvalidURL(t *testing.T) {
 
 func TestXMLPostRequestInvalidURL(t *testing.T) {
 	resp := <-Post("%../dir/",
-		&RequestOptions{Xml: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
+		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
@@ -100,7 +100,7 @@ func TestXMLPostRequestInvalidURL(t *testing.T) {
 
 func TestBasicPostJsonRequestInvalidURL(t *testing.T) {
 	resp := <-Post("%../dir/",
-		&RequestOptions{Json: map[string]string{"One": "Two"}, IsAjax: true})
+		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
@@ -143,7 +143,7 @@ func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 
 func TestXMLPostRequest(t *testing.T) {
 	resp := <-Post("http://httpbin.org/post",
-		&RequestOptions{Xml: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
+		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -153,15 +153,15 @@ func TestXMLPostRequest(t *testing.T) {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicPostJsonResponse{}
+	myJSONStruct := &BasicPostJSONResponse{}
 
-	if err := resp.Json(myJsonStruct); err != nil {
+	if err := resp.JSON(myJSONStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
 	myXMLStruct := &XMLPostMessage{}
 
-	xml.Unmarshal([]byte(myJsonStruct.Data), myXMLStruct)
+	xml.Unmarshal([]byte(myJSONStruct.Data), myXMLStruct)
 
 	if myXMLStruct.Age != 1 {
 		t.Errorf("Unable to serialize XML response from within JSON %#v ", myXMLStruct)
@@ -191,22 +191,22 @@ func TestBasicPostRequestUpload(t *testing.T) {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicPostFileUpload{}
+	myJSONStruct := &BasicPostFileUpload{}
 
-	if err := resp.Json(myJsonStruct); err != nil {
+	if err := resp.JSON(myJSONStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
-	if myJsonStruct.URL != "http://httpbin.org/post" {
-		t.Error("For some reason the URL isn't the same", myJsonStruct.URL)
+	if myJSONStruct.URL != "http://httpbin.org/post" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
 	}
 
-	if myJsonStruct.Headers.Host != "httpbin.org" {
+	if myJSONStruct.Headers.Host != "httpbin.org" {
 		t.Error("The host header is invalid")
 	}
 
-	if myJsonStruct.Files.File != "saucy sauce" {
-		t.Error("File upload contents have been modified: ", myJsonStruct.Files.File)
+	if myJSONStruct.Files.File != "saucy sauce" {
+		t.Error("File upload contents have been modified: ", myJSONStruct.Files.File)
 	}
 
 	if resp.Bytes() != nil {
@@ -221,15 +221,15 @@ func TestBasicPostRequestUpload(t *testing.T) {
 		t.Error("Response returned a non-200 code")
 	}
 
-	if myJsonStruct.Form.One != "Two" {
-		t.Error("Unable to parse form properly", myJsonStruct.Form)
+	if myJSONStruct.Form.One != "Two" {
+		t.Error("Unable to parse form properly", myJSONStruct.Form)
 	}
 
 }
 
 func TestBasicPostJsonRequest(t *testing.T) {
 	resp := <-Post("http://httpbin.org/post",
-		&RequestOptions{Json: map[string]string{"One": "Two"}, IsAjax: true})
+		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -239,26 +239,26 @@ func TestBasicPostJsonRequest(t *testing.T) {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicPostJsonResponse{}
+	myJSONStruct := &BasicPostJSONResponse{}
 
-	if err := resp.Json(myJsonStruct); err != nil {
+	if err := resp.JSON(myJSONStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
-	if myJsonStruct.URL != "http://httpbin.org/post" {
-		t.Error("For some reason the URL isn't the same", myJsonStruct.URL)
+	if myJSONStruct.URL != "http://httpbin.org/post" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
 	}
 
-	if myJsonStruct.Headers.Host != "httpbin.org" {
+	if myJSONStruct.Headers.Host != "httpbin.org" {
 		t.Error("The host header is invalid")
 	}
 
-	if myJsonStruct.JSON.One != "Two" {
-		t.Error("Invalid post response: ", myJsonStruct.JSON.One)
+	if myJSONStruct.JSON.One != "Two" {
+		t.Error("Invalid post response: ", myJSONStruct.JSON.One)
 	}
 
-	if strings.TrimSpace(myJsonStruct.Data) != `{"One":"Two"}` {
-		t.Error("JSON not properly returned: ", myJsonStruct.Data)
+	if strings.TrimSpace(myJSONStruct.Data) != `{"One":"Two"}` {
+		t.Error("JSON not properly returned: ", myJSONStruct.Data)
 	}
 
 	if resp.Bytes() != nil {
@@ -273,8 +273,8 @@ func TestBasicPostJsonRequest(t *testing.T) {
 		t.Error("Response returned a non-200 code")
 	}
 
-	if myJsonStruct.Headers.XRequestedWith != "XMLHttpRequest" {
-		t.Error("Invalid requested header: ", myJsonStruct.Headers.XRequestedWith)
+	if myJSONStruct.Headers.XRequestedWith != "XMLHttpRequest" {
+		t.Error("Invalid requested header: ", myJSONStruct.Headers.XRequestedWith)
 	}
 
 }
@@ -293,22 +293,22 @@ func verifyOkPostResponse(resp *Response, t *testing.T) *BasicPostResponse {
 		t.Error("Request did not return OK")
 	}
 
-	myJsonStruct := &BasicPostResponse{}
+	myJSONStruct := &BasicPostResponse{}
 
-	if err := resp.Json(myJsonStruct); err != nil {
+	if err := resp.JSON(myJSONStruct); err != nil {
 		t.Error("Unable to coerce to JSON", err)
 	}
 
-	if myJsonStruct.URL != "http://httpbin.org/post" {
-		t.Error("For some reason the URL isn't the same", myJsonStruct.URL)
+	if myJSONStruct.URL != "http://httpbin.org/post" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
 	}
 
-	if myJsonStruct.Headers.Host != "httpbin.org" {
+	if myJSONStruct.Headers.Host != "httpbin.org" {
 		t.Error("The host header is invalid")
 	}
 
-	if myJsonStruct.Form.One != "Two" {
-		t.Errorf("Invalid post response: %#v", myJsonStruct.Form)
+	if myJSONStruct.Form.One != "Two" {
+		t.Errorf("Invalid post response: %#v", myJSONStruct.Form)
 	}
 
 	if resp.Bytes() != nil {
@@ -323,5 +323,5 @@ func verifyOkPostResponse(resp *Response, t *testing.T) *BasicPostResponse {
 		t.Error("Response returned a non-200 code")
 	}
 
-	return myJsonStruct
+	return myJSONStruct
 }
