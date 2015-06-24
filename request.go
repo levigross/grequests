@@ -56,7 +56,7 @@ type RequestOptions struct {
 }
 
 func doRequest(requestVerb, url string, ro *RequestOptions) chan *Response {
-	responseChan := make(chan *Response)
+	responseChan := make(chan *Response, 1)
 	go func() {
 		responseChan <- buildResponse(buildRequest(requestVerb, url, ro))
 	}()
