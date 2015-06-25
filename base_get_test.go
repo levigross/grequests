@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"net/http"
 	"os"
 	"testing"
 )
@@ -82,16 +83,69 @@ type GetXMLSample struct {
 	} `xml:"slide"`
 }
 
+type TestJSONCookies struct {
+	Cookies struct {
+		AnotherCookie string `json:"AnotherCookie"`
+		TestCookie    string `json:"TestCookie"`
+	} `json:"cookies"`
+}
+
 func TestGetNoOptions(t *testing.T) {
-	verifyOkResponse(<-Get("http://httpbin.org/get", nil), t)
+	verifyOkResponse(<-GetAsync("http://httpbin.org/get", nil), t)
+}
+
+func TestGetSyncNoOptions(t *testing.T) {
+	verifyOkResponse(Get("http://httpbin.org/get", nil), t)
 }
 
 func TestGetNoOptionsGzip(t *testing.T) {
-	verifyOkResponse(<-Get("http://httpbin.org/gzip", nil), t)
+	verifyOkResponse(<-GetAsync("http://httpbin.org/gzip", nil), t)
+}
+
+func TestGetWithCookies(t *testing.T) {
+	resp := <-GetAsync("http://httpbin.org/cookies",
+		&RequestOptions{
+			Cookies: []http.Cookie{
+				http.Cookie{
+					Name:     "TestCookie",
+					Value:    "Random Value",
+					HttpOnly: true,
+					Secure:   false,
+				}, http.Cookie{
+					Name:     "AnotherCookie",
+					Value:    "Some Value",
+					HttpOnly: true,
+					Secure:   false,
+				},
+			},
+		})
+
+	if resp.Error != nil {
+		t.Error("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &TestJSONCookies{}
+
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Cannot serialize cookie JSON: ", err)
+	}
+
+	if myJSONStruct.Cookies.TestCookie != "Random Value" {
+		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+	}
+
+	if myJSONStruct.Cookies.AnotherCookie != "Some Value" {
+		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+	}
+
 }
 
 //func TestGetNoOptionsDeflate(t *testing.T) {
-//	verifyOkResponse(<-Get("http://httpbin.org/deflate", nil), t)
+//	verifyOkResponse(<-GetAsync("http://httpbin.org/deflate", nil), t)
 //}
 
 func xmlASCIIDecoder(charset string, input io.Reader) (io.Reader, error) {
@@ -99,7 +153,7 @@ func xmlASCIIDecoder(charset string, input io.Reader) (io.Reader, error) {
 }
 
 func TestGetInvalidURL(t *testing.T) {
-	resp := <-Get("%../dir/", &RequestOptions{Params: map[string]string{"1": "2"}})
+	resp := <-GetAsync("%../dir/", &RequestOptions{Params: map[string]string{"1": "2"}})
 
 	if resp.Error == nil {
 		t.Error("Some how the request was valid to make request", resp.Error)
@@ -107,7 +161,7 @@ func TestGetInvalidURL(t *testing.T) {
 }
 
 func TestGetXMLSerialize(t *testing.T) {
-	resp := <-Get("http://httpbin.org/xml", nil)
+	resp := <-GetAsync("http://httpbin.org/xml", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -134,7 +188,7 @@ func TestGetXMLSerialize(t *testing.T) {
 }
 
 func TestGetNoOptionsChannel(t *testing.T) {
-	respChan := Get("http://httpbin.org/get", nil)
+	respChan := GetAsync("http://httpbin.org/get", nil)
 	select {
 	case resp := <-respChan:
 		verifyOkResponse(resp, t)
@@ -143,7 +197,7 @@ func TestGetNoOptionsChannel(t *testing.T) {
 
 func TestGetCustomUserAgent(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1"}
-	resp := <-Get("http://httpbin.org/get", ro)
+	resp := <-GetAsync("http://httpbin.org/get", ro)
 	jsonResp := verifyOkResponse(resp, t)
 	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
 		t.Error("User agent header not properly set")
@@ -152,7 +206,7 @@ func TestGetCustomUserAgent(t *testing.T) {
 
 func TestGetBasicAuth(t *testing.T) {
 	ro := &RequestOptions{Auth: []string{"Levi", "Bot"}}
-	resp := <-Get("http://httpbin.org/get", ro)
+	resp := <-GetAsync("http://httpbin.org/get", ro)
 	// Not the usual JSON so copy and paste from below
 
 	if resp.Error != nil {
@@ -179,7 +233,7 @@ func TestGetBasicAuth(t *testing.T) {
 func TestGetCustomHeader(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1",
 		Headers: map[string]string{"X-Wonderful-Header": "1"}}
-	resp := <-Get("http://httpbin.org/get", ro)
+	resp := <-GetAsync("http://httpbin.org/get", ro)
 	// Not the usual JSON so copy and paste from below
 
 	if resp.Error != nil {
@@ -204,7 +258,7 @@ func TestGetCustomHeader(t *testing.T) {
 
 func TestGetInvalidSSLCertNoVerify(t *testing.T) {
 	ro := &RequestOptions{InsecureSkipVerify: true}
-	resp := <-Get("https://www.pcwebshop.co.uk/", ro)
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
 	}
@@ -216,7 +270,7 @@ func TestGetInvalidSSLCertNoVerify(t *testing.T) {
 
 func TestGetInvalidSSLCert(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1"}
-	resp := <-Get("https://www.pcwebshop.co.uk/", ro)
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
 
 	if resp.Error == nil {
 		t.Error("SSL verification worked when it shouldn't of", resp.Error)
@@ -232,7 +286,7 @@ func TestGetBasicArgs(t *testing.T) {
 	ro := &RequestOptions{
 		Params: map[string]string{"Hello": "World"},
 	}
-	verifyOkArgsResponse(<-Get("http://httpbin.org/get?Goodbye=World", ro), t)
+	verifyOkArgsResponse(<-GetAsync("http://httpbin.org/get?Goodbye=World", ro), t)
 
 }
 
@@ -240,18 +294,18 @@ func TestGetBasicArgsParams(t *testing.T) {
 	ro := &RequestOptions{
 		Params: map[string]string{"Hello": "World", "Goodbye": "World"},
 	}
-	verifyOkArgsResponse(<-Get("http://httpbin.org/get", ro), t)
+	verifyOkArgsResponse(<-GetAsync("http://httpbin.org/get", ro), t)
 }
 
 func TestGetBasicArgsParamsOverwrite(t *testing.T) {
 	ro := &RequestOptions{
 		Params: map[string]string{"Hello": "World", "Goodbye": "World"},
 	}
-	verifyOkArgsResponse(<-Get("http://httpbin.org/get?Hello=Nothing", ro), t)
+	verifyOkArgsResponse(<-GetAsync("http://httpbin.org/get?Hello=Nothing", ro), t)
 }
 
 func TestGetFileDownload(t *testing.T) {
-	resp := <-Get("http://httpbin.org/get", nil)
+	resp := <-GetAsync("http://httpbin.org/get", nil)
 
 	fileName := "randomFile"
 
@@ -302,7 +356,7 @@ func TestGetFileDownload(t *testing.T) {
 }
 
 func TestJsonConsumedResponse(t *testing.T) {
-	resp := <-Get("http://httpbin.org/get", nil)
+	resp := <-GetAsync("http://httpbin.org/get", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -324,7 +378,7 @@ func TestJsonConsumedResponse(t *testing.T) {
 }
 
 func TestDownloadConsumedResponse(t *testing.T) {
-	resp := <-Get("http://httpbin.org/get", nil)
+	resp := <-GetAsync("http://httpbin.org/get", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -348,7 +402,7 @@ func TestDownloadConsumedResponse(t *testing.T) {
 }
 
 func TestGetBytes(t *testing.T) {
-	resp := <-Get("http://httpbin.org/get", nil)
+	resp := <-GetAsync("http://httpbin.org/get", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -368,7 +422,7 @@ func TestGetBytes(t *testing.T) {
 }
 
 func TestGetBytesNoBuffer(t *testing.T) {
-	resp := <-Get("http://httpbin.org/get", nil)
+	resp := <-GetAsync("http://httpbin.org/get", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -400,7 +454,7 @@ func TestGetBytesNoBuffer(t *testing.T) {
 }
 
 func TestGetString(t *testing.T) {
-	resp := <-Get("http://httpbin.org/get", nil)
+	resp := <-GetAsync("http://httpbin.org/get", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)

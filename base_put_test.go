@@ -5,7 +5,20 @@ import (
 )
 
 func TestBasicPutRequest(t *testing.T) {
-	resp := <-Put("http://httpbin.org/put", nil)
+	resp := Put("http://httpbin.org/put", nil)
+
+	if resp.Error != nil {
+		t.Error("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+}
+
+func TestBasicAsyncPutRequest(t *testing.T) {
+	resp := <-PutAsync("http://httpbin.org/put", nil)
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -24,7 +37,7 @@ func TestBasicPutUploadRequest(t *testing.T) {
 		t.Error("Unable to open file: ", err)
 	}
 
-	resp := <-Put("http://httpbin.org/put",
+	resp := <-PutAsync("http://httpbin.org/put",
 		&RequestOptions{
 			File: fd,
 			Data: map[string]string{"One": "Two"},
@@ -47,7 +60,7 @@ func TestBasicPutUploadRequestInvalidURL(t *testing.T) {
 		t.Error("Unable to open file: ", err)
 	}
 
-	resp := <-Put("%../dir/",
+	resp := Put("%../dir/",
 		&RequestOptions{
 			File: fd,
 			Data: map[string]string{"One": "Two"},

@@ -73,13 +73,19 @@ type XMLPostMessage struct {
 }
 
 func TestBasicPostRequest(t *testing.T) {
-	verifyOkPostResponse(<-Post("http://httpbin.org/post",
+	verifyOkPostResponse(<-PostAsync("http://httpbin.org/post",
+		&RequestOptions{Data: map[string]string{"One": "Two"}}), t)
+
+}
+
+func TestBasicRegularPostRequest(t *testing.T) {
+	verifyOkPostResponse(Post("http://httpbin.org/post",
 		&RequestOptions{Data: map[string]string{"One": "Two"}}), t)
 
 }
 
 func TestBasicPostRequestInvalidURL(t *testing.T) {
-	resp := <-Post("%../dir/",
+	resp := <-PostAsync("%../dir/",
 		&RequestOptions{Data: map[string]string{"One": "Two"},
 			Params: map[string]string{"1": "2"}})
 
@@ -90,7 +96,7 @@ func TestBasicPostRequestInvalidURL(t *testing.T) {
 }
 
 func TestXMLPostRequestInvalidURL(t *testing.T) {
-	resp := <-Post("%../dir/",
+	resp := <-PostAsync("%../dir/",
 		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
 
 	if resp.Error == nil {
@@ -99,7 +105,7 @@ func TestXMLPostRequestInvalidURL(t *testing.T) {
 }
 
 func TestBasicPostJsonRequestInvalidURL(t *testing.T) {
-	resp := <-Post("%../dir/",
+	resp := <-PostAsync("%../dir/",
 		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
 
 	if resp.Error == nil {
@@ -117,7 +123,7 @@ func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 
 	defer fd.FileContents.Close()
 
-	resp := <-Post("%../dir/",
+	resp := <-PostAsync("%../dir/",
 		&RequestOptions{
 			File: fd,
 			Data: map[string]string{"One": "Two"},
@@ -130,7 +136,7 @@ func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 
 func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 
-	resp := <-Post("%../dir/",
+	resp := <-PostAsync("%../dir/",
 		&RequestOptions{
 			File: &FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil},
 			Data: map[string]string{"One": "Two"},
@@ -142,7 +148,7 @@ func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 }
 
 func TestXMLPostRequest(t *testing.T) {
-	resp := <-Post("http://httpbin.org/post",
+	resp := <-PostAsync("http://httpbin.org/post",
 		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
 
 	if resp.Error != nil {
@@ -177,7 +183,7 @@ func TestBasicPostRequestUpload(t *testing.T) {
 		t.Error("Unable to open file: ", err)
 	}
 
-	resp := <-Post("http://httpbin.org/post",
+	resp := <-PostAsync("http://httpbin.org/post",
 		&RequestOptions{
 			File: fd,
 			Data: map[string]string{"One": "Two"},
@@ -228,7 +234,7 @@ func TestBasicPostRequestUpload(t *testing.T) {
 }
 
 func TestBasicPostJsonRequest(t *testing.T) {
-	resp := <-Post("http://httpbin.org/post",
+	resp := <-PostAsync("http://httpbin.org/post",
 		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
 
 	if resp.Error != nil {

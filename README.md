@@ -11,8 +11,7 @@ GRequests is licensed under the Apache License, Version 2.0. See [LICENSE](LICEN
 Features
 ========
 
-- Every request runs in it's own goroutine
-- Responses are asynchronous by nature (and you can easily make them synchronous)
+- Asynchronous and synchronous functionality built in
 - Doesn't depend on external libraries (functionality is designed to compliment `net/http`)
 - Works with every version of Go from 1.3
 - Responses can be serialized into JSON and XML
@@ -30,7 +29,7 @@ Basic Example
 Basic GET request:
 
 ```go
-resp := <-Get("http://httpbin.org/get", nil) // You can modify the request by passing an optional RequestOptions struct
+resp := Get("http://httpbin.org/get", nil) // You can modify the request by passing an optional RequestOptions struct
 
 fmt.Println(resp.String())
 // {
@@ -42,7 +41,7 @@ fmt.Println(resp.String())
 Because all of the HTTP methods return a channel, you can read the in a `select` statement as well.
 
 ```go
-respChan := Get("http://httpbin.org/get", nil)
+respChan := GetAsync("http://httpbin.org/get", nil)
 	select {
 	case resp := <-respChan:
 		fmt.Println(resp.String())
@@ -58,7 +57,7 @@ respChan := Get("http://httpbin.org/get", nil)
 It is very important to check the `.Error` property of the `Response` e.g:
 
 ```go
-resp := <-Get("http://httpbin.org/xml", nil)
+resp := Get("http://httpbin.org/xml", nil)
 
 if resp.Error != nil {
 	log.Fatalln("Unable to make request", resp.Error)
