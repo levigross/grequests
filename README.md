@@ -29,7 +29,7 @@ Basic Example
 Basic GET request:
 
 ```go
-resp := Get("http://httpbin.org/get", nil) // You can modify the request by passing an optional RequestOptions struct
+resp := grequests.Get("http://httpbin.org/get", nil) // You can modify the request by passing an optional RequestOptions struct
 
 fmt.Println(resp.String())
 // {
@@ -41,7 +41,7 @@ fmt.Println(resp.String())
 Because all of the HTTP methods return a channel, you can read the in a `select` statement as well.
 
 ```go
-respChan := GetAsync("http://httpbin.org/get", nil)
+respChan := grequests.GetAsync("http://httpbin.org/get", nil)
 	select {
 	case resp := <-respChan:
 		fmt.Println(resp.String())
@@ -57,7 +57,7 @@ respChan := GetAsync("http://httpbin.org/get", nil)
 It is very important to check the `.Error` property of the `Response` e.g:
 
 ```go
-resp := Get("http://httpbin.org/xml", nil)
+resp := grequests.Get("http://httpbin.org/xml", nil)
 
 if resp.Error != nil {
 	log.Fatalln("Unable to make request", resp.Error)

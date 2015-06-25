@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -40,26 +39,42 @@ func buildResponse(resp *http.Response, err error) *Response {
 
 	return &Response{
 		// If your code is within the 2xx range – the response is considered `Ok`
-		Ok:          resp.StatusCode <= 200 && resp.StatusCode < 300,
-		Error:       nil,
-		RawResponse: resp,
-		StatusCode:  resp.StatusCode,
-		Header:      resp.Header,
+		Ok:                 resp.StatusCode <= 200 && resp.StatusCode < 300,
+		Error:              nil,
+		RawResponse:        resp,
+		StatusCode:         resp.StatusCode,
+		Header:             resp.Header,
+		internalByteBuffer: bytes.NewBuffer([]byte{}),
 	}
 }
 
 // Read is part of our ability to support io.ReadCloser if someone wants to make use of the raw body
 func (r *Response) Read(p []byte) (n int, err error) {
+
+	if r.Error != nil {
+		return -1, r.Error
+	}
+
 	return r.RawResponse.Body.Read(p)
 }
 
 // Close is part of our ability to support io.ReadCloser if someone wants to make use of the raw body
 func (r *Response) Close() error {
+
+	if r.Error != nil {
+		return r.Error
+	}
+
 	return r.RawResponse.Body.Close()
 }
 
 // DownloadToFile allows you to download the contents of the response to a file
 func (r *Response) DownloadToFile(fileName string) error {
+
+	if r.Error != nil {
+		return r.Error
+	}
+
 	fd, err := os.Create(fileName)
 
 	if err != nil {
@@ -79,7 +94,8 @@ func (r *Response) DownloadToFile(fileName string) error {
 // getInternalReader because we implement io.ReadCloser and optionally hold a large buffer of the response (created by
 // the user's request)
 func (r *Response) getInternalReader() io.Reader {
-	if r.internalByteBuffer != nil {
+
+	if r.internalByteBuffer.Len() != 0 {
 		return r.internalByteBuffer
 	}
 	return r
@@ -88,6 +104,11 @@ func (r *Response) getInternalReader() io.Reader {
 // XML is a method that will populate a struct that is provided `userStruct` with the XML returned within the
 // response body
 func (r *Response) XML(userStruct interface{}, charsetReader XMLCharDecoder) error {
+
+	if r.Error != nil {
+		return r.Error
+	}
+
 	xmlDecoder := xml.NewDecoder(r.getInternalReader())
 
 	if charsetReader != nil {
@@ -106,6 +127,11 @@ func (r *Response) XML(userStruct interface{}, charsetReader XMLCharDecoder) err
 // JSON is a method that will populate a struct that is provided `userStruct` with the JSON returned within the
 // response body
 func (r *Response) JSON(userStruct interface{}) error {
+
+	if r.Error != nil {
+		return r.Error
+	}
+
 	jsonDecoder := json.NewDecoder(r.getInternalReader())
 	defer r.Close()
 
@@ -116,46 +142,57 @@ func (r *Response) JSON(userStruct interface{}) error {
 	return nil
 }
 
-// respBytesBuffer is a utility method that will populate the internal byte reader – this is largely used for .String()
+// createResponseBytesBuffer is a utility method that will populate the internal byte reader – this is largely used for .String()
 // and .Bytes()
-func (r *Response) respBytesBuffer() error {
+func (r *Response) populateResponseByteBuffer() {
 
-	if r.internalByteBuffer != nil {
-		return nil
+	// Have I done this already?
+	if r.internalByteBuffer.Len() != 0 {
+		return
 	}
 
 	defer r.Close()
 
-	if r.RawResponse.ContentLength < 0 {
-		return fmt.Errorf("response content length is invalid %v", r.RawResponse.ContentLength)
+	// Is there any content?
+	if r.RawResponse.ContentLength == 0 {
+		return
 	}
 
-	r.internalByteBuffer = &bytes.Buffer{}
-	r.internalByteBuffer.Grow(int(r.RawResponse.ContentLength))
+	// Did the server tell us how big the response is going to be?
+	if r.RawResponse.ContentLength > 0 {
+		r.internalByteBuffer.Grow(int(r.RawResponse.ContentLength))
+	}
 
 	if _, err := io.Copy(r.internalByteBuffer, r); err != nil && err != io.EOF {
-		return err
+		r.Error = err
 	}
-
-	return nil
 
 }
 
 // Bytes returns the response as a byte array
 func (r *Response) Bytes() []byte {
-	if err := r.respBytesBuffer(); err != nil {
+
+	if r.Error != nil {
 		return nil
 	}
 
+	r.populateResponseByteBuffer()
+
+	// Are we still empty?
+	if r.internalByteBuffer.Len() == 0 {
+		return nil
+	}
 	return r.internalByteBuffer.Bytes()
 
 }
 
 // String returns the response as a string
 func (r *Response) String() string {
-	if err := r.respBytesBuffer(); err != nil {
+	if r.Error != nil {
 		return ""
 	}
+
+	r.populateResponseByteBuffer()
 
 	return r.internalByteBuffer.String()
 }
@@ -163,6 +200,10 @@ func (r *Response) String() string {
 // ClearInternalBuffer is a function that will clear the internal buffer that we use to hold the .String() and .Bytes()
 // data. Once you have used these functions – you may want to free up the memory.
 func (r *Response) ClearInternalBuffer() {
+
+	if r.Error != nil {
+		return // This is a noop as we will be dereferencing a null pointer
+	}
+
 	r.internalByteBuffer.Reset()
-	r.internalByteBuffer = nil
 }

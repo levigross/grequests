@@ -315,6 +315,62 @@ func TestGetInvalidSSLCertWithCompression(t *testing.T) {
 
 }
 
+func TestErrorResponseNOOP(t *testing.T) {
+	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: false}
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
+
+	if resp.Error == nil {
+		t.Error("SSL verification worked when it shouldn't of", resp.Error)
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did return OK")
+	}
+
+	myJSONStruct := &BasicGetResponseArgs{}
+
+	if err := resp.JSON(myJSONStruct); err == nil {
+		t.Error("Somehow Able to convert to JSON", err)
+	}
+
+	if resp.Bytes() != nil {
+		t.Error("Somehow byte buffer is working now (bytes)", resp.Bytes())
+	}
+
+	if resp.String() != "" {
+		t.Error("Somehow byte buffer is working now (bytes)", resp.String())
+	}
+
+	resp.ClearInternalBuffer()
+
+	if resp.Bytes() != nil {
+		t.Error("Somehow byte buffer is working now (bytes)", resp.Bytes())
+	}
+
+	if resp.String() != "" {
+		t.Error("Somehow byte buffer is working now (bytes)", resp.String())
+	}
+
+	userXML := &GetXMLSample{}
+
+	if err := resp.XML(userXML, xmlASCIIDecoder); err == nil {
+		t.Errorf("Somehow to consume the response as XML: %#v", userXML)
+	}
+
+	fileName := "randomFile"
+
+	if err := resp.DownloadToFile(fileName); err == nil {
+		t.Error("Somehow able to download to file: ", err)
+	}
+
+	var buf [1]byte
+
+	if written, err := resp.Read(buf[:]); written != -1 && err == nil {
+		t.Error("Somehow we were able to read from our error response")
+	}
+
+}
+
 func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: true}
 	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
@@ -442,7 +498,7 @@ func TestJsonConsumedResponse(t *testing.T) {
 	}
 
 	if resp.Bytes() == nil {
-		t.Error("Unable to coerce value to bytes")
+		t.Error("Unable to coerce value to bytes", resp.Bytes())
 	}
 
 	resp.ClearInternalBuffer()
@@ -540,7 +596,7 @@ func TestGetString(t *testing.T) {
 	}
 
 	if resp.String() == "" {
-		t.Error("JSON decoding did not fully consume the response stream (string)", resp.String())
+		t.Error("Response Stream not returned as string", resp.String())
 	}
 
 	if resp.String() != resp.String() {
@@ -624,7 +680,7 @@ func verifyOkResponse(resp *Response, t *testing.T) *BasicGetResponse {
 	}
 
 	if resp.Bytes() != nil {
-		t.Error("JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
+		t.Errorf("JSON decoding did not fully consume the response stream (Bytes) %#v", resp.Bytes())
 	}
 
 	if resp.String() != "" {
