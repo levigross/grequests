@@ -160,6 +160,14 @@ func TestGetInvalidURL(t *testing.T) {
 	}
 }
 
+func TestGetInvalidURLNoParams(t *testing.T) {
+	resp := <-GetAsync("%../dir/", nil)
+
+	if resp.Error == nil {
+		t.Error("Some how the request was valid to make request", resp.Error)
+	}
+}
+
 func TestGetXMLSerialize(t *testing.T) {
 	resp := <-GetAsync("http://httpbin.org/xml", nil)
 

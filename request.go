@@ -9,9 +9,11 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // RequestOptions is the location that of where the data
@@ -79,8 +81,15 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 	httpClient := buildHTTPClient(ro)
 
 	// Build our URL
+	var err error
+
 	if ro.Params != nil {
-		url = buildURLParams(url, ro.Params)
+		url, err = buildURLParams(url, ro.Params)
+
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	// Build the request
@@ -232,23 +241,35 @@ func encodePostValues(postValues map[string]string) string {
 }
 
 func buildHTTPClient(ro *RequestOptions) *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			DisableCompression: ro.DisableCompression,
-			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
-		},
+	if ro.InsecureSkipVerify != true && ro.DisableCompression != true {
+		return http.DefaultClient
 	}
 
+	return &http.Client{
+		Transport: &http.Transport{
+			// These are borrowed from the default transporter
+			Proxy: http.ProxyFromEnvironment,
+			Dial: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout: 10 * time.Second,
+
+			// He comes the user settings
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
+			DisableCompression: ro.DisableCompression,
+		},
+	}
 }
 
 // buildURLParams returns a URL with all of the params
 // Note: This function will override current URL params if they contradict what is provided in the map
 // That is what the "magic" is on the last line
-func buildURLParams(userURL string, params map[string]string) string {
+func buildURLParams(userURL string, params map[string]string) (string, error) {
 	parsedURL, err := url.Parse(userURL)
 
 	if err != nil {
-		return userURL
+		return "", err
 	}
 
 	parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
@@ -261,7 +282,7 @@ func buildURLParams(userURL string, params map[string]string) string {
 		[]string{strings.Replace(parsedURL.String(),
 			"?"+parsedURL.RawQuery, "", -1),
 			parsedQuery.Encode()},
-		"?")
+		"?"), nil
 }
 
 // addHTTPHeaders adds any additional HTTP headers that need to be added are added here including:
