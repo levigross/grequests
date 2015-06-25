@@ -99,7 +99,7 @@ func TestGetSyncNoOptions(t *testing.T) {
 }
 
 func TestGetNoOptionsGzip(t *testing.T) {
-	verifyOkResponse(<-GetAsync("http://httpbin.org/gzip", nil), t)
+	verifyOkResponse(<-GetAsync("https://httpbin.org/gzip", nil), t)
 }
 
 func TestGetWithCookies(t *testing.T) {
@@ -274,6 +274,73 @@ func TestGetInvalidSSLCertNoVerify(t *testing.T) {
 	if resp.Ok != true {
 		t.Error("Request did not return OK")
 	}
+}
+
+func TestGetInvalidSSLCertNoVerifyNoOptions(t *testing.T) {
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", nil)
+	if resp.Error == nil {
+		t.Error("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did not return OK")
+	}
+}
+
+func TestGetInvalidSSLCertNoCompression(t *testing.T) {
+	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: true}
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
+
+	if resp.Error == nil {
+		t.Error("SSL verification worked when it shouldn't of", resp.Error)
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did return OK")
+	}
+
+}
+
+func TestGetInvalidSSLCertWithCompression(t *testing.T) {
+	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: false}
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
+
+	if resp.Error == nil {
+		t.Error("SSL verification worked when it shouldn't of", resp.Error)
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did return OK")
+	}
+
+}
+
+func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
+	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: true}
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
+
+	if resp.Error != nil {
+		t.Error("SSL verification worked when it shouldn't of", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did return OK")
+	}
+
+}
+
+func TestGetInvalidSSLCertWithCompressionNoVerify(t *testing.T) {
+	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: false}
+	resp := <-GetAsync("https://www.pcwebshop.co.uk/", ro)
+
+	if resp.Error != nil {
+		t.Error("SSL verification worked when it shouldn't of", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did return OK")
+	}
+
 }
 
 func TestGetInvalidSSLCert(t *testing.T) {

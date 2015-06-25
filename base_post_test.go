@@ -95,6 +95,15 @@ func TestBasicPostRequestInvalidURL(t *testing.T) {
 
 }
 
+func TestBasicPostRequestInvalidURLNoParams(t *testing.T) {
+	resp := <-PostAsync("%../dir/", &RequestOptions{Data: map[string]string{"One": "Two"}})
+
+	if resp.Error == nil {
+		t.Error("Somehow the request went through")
+	}
+
+}
+
 func TestXMLPostRequestInvalidURL(t *testing.T) {
 	resp := <-PostAsync("%../dir/",
 		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})

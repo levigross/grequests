@@ -241,6 +241,7 @@ func encodePostValues(postValues map[string]string) string {
 }
 
 func buildHTTPClient(ro *RequestOptions) *http.Client {
+	// Does the user want to change the defaults?
 	if ro.InsecureSkipVerify != true && ro.DisableCompression != true {
 		return http.DefaultClient
 	}
@@ -256,7 +257,7 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 			TLSHandshakeTimeout: 10 * time.Second,
 
 			// He comes the user settings
-			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify == true},
 			DisableCompression: ro.DisableCompression,
 		},
 	}
