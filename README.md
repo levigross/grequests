@@ -38,7 +38,7 @@ fmt.Println(resp.String())
 //     "Accept": "*/*",
 //     "Host": "httpbin.org",
 ```
-Because all of the HTTP methods return a channel, you can read the in a `select` statement as well.
+Because all of the HTTP methods return a channel, you can read them in a `select` statement as well.
 
 ```go
 respChan := grequests.GetAsync("http://httpbin.org/get", nil)
