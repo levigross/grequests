@@ -10,7 +10,7 @@ if [[ "$(go vet ./...)" != "" ]]; then
     exit 1
 fi
 
-if [[ "$(golint ./...)" != "" ]]; then
+if [[ "$($GOPATH/bin/golint ./...)" != "" ]]; then
     echo "Please golint your code"
     exit 1
 fi
