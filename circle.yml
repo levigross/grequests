@@ -1,0 +1,9 @@
+dependencies:
+  pre:
+      - go get github.com/axw/gocov/gocov
+      - go get github.com/mattn/goveralls
+      - go get -u github.com/golang/lint/...
+test:
+  override:
+      - .ci_helpers/format.sh
+      - go test -v -race ./...
