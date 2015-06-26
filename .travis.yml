@@ -11,10 +11,11 @@ go:
 before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
+  - go get github.com/golang/lint
 
 script:
+  - .ci_helpers/format.sh
   - go test -v -race -covermode=count -coverprofile=coverage.out
 
 after_success:
   - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
-
