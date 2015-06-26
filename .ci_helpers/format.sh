@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 if [[ "$(go fmt ./...)" != "" ]]; then
     echo "Please go fmt your code"
     exit 1
