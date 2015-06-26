@@ -11,7 +11,7 @@ go:
 before_install:
   - go get -u github.com/axw/gocov/gocov
   - go get -u github.com/mattn/goveralls
-  - go get -u github.com/golang/lint/...
+  - go get -u github.com/golang/lint
 
 script:
   - .ci_helpers/format.sh
