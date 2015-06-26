@@ -2,6 +2,7 @@ package grequests
 
 import (
 	"encoding/xml"
+	"math"
 	"strings"
 	"testing"
 )
@@ -114,11 +115,37 @@ func TestXMLPostRequestInvalidURL(t *testing.T) {
 }
 
 func TestBasicPostJsonRequestInvalidURL(t *testing.T) {
-	resp := <-PostAsync("%../dir/",
+	resp := Post("%../dir/",
 		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
+	}
+}
+
+func TestBasicPostJsonRequestInvalidJSON(t *testing.T) {
+	resp := Post("http://httpbin.org/post",
+		&RequestOptions{JSON: math.NaN(), IsAjax: true})
+
+	if resp.Error == nil {
+		t.Error("Somehow the request went through")
+	}
+
+	if resp.Ok == true {
+		t.Error("Somehow the request is OK")
+	}
+}
+
+func TestBasicPostJsonRequestInvalidXML(t *testing.T) {
+	resp := Post("http://httpbin.org/post",
+		&RequestOptions{XML: map[string]string{"One": "two"}, IsAjax: true})
+
+	if resp.Error == nil {
+		t.Error("Somehow the request went through")
+	}
+
+	if resp.Ok == true {
+		t.Error("Somehow the request is OK")
 	}
 }
 

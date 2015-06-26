@@ -12,7 +12,7 @@ Features
 ========
 
 - Asynchronous and synchronous functionality built in
-- Doesn't depend on external libraries (functionality is designed to compliment `net/http`)
+- Doesn't depend on external libraries (functionality is designed to complement `net/http`)
 - Works with every version of Go from 1.3
 - Responses can be serialized into JSON and XML
 - Easy file uploads
@@ -126,7 +126,7 @@ response := Get("http://some-wonderful-file.txt", nil)
 
 // This call to .Bytes caches the request bytes in an internal byte buffer – which can be used again and again until it is cleared
 response.Bytes() == `file-bytes`
-response.String() == "" // true
+response.String() == "file-string"
 
 // This will work because it will use the internal byte buffer
 if err := resp.DownloadToFile("randomFile"); err != nil {

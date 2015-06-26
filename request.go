@@ -133,6 +133,7 @@ func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*h
 	}
 
 	// This may be a PUT or PATCH request so we will just put the raw io.ReadCloser in the request body
+	// and guess the MIME type from the file name
 
 	req, err := http.NewRequest(httpMethod, userURL, ro.File.FileContents)
 
@@ -149,8 +150,9 @@ func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*h
 func createBasicXMLRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 	tempBuffer := &bytes.Buffer{}
 
-	xmlEncoder := xml.NewEncoder(tempBuffer)
-	xmlEncoder.Encode(ro.XML)
+	if err := xml.NewEncoder(tempBuffer).Encode(ro.XML); err != nil {
+		return nil, err
+	}
 
 	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
 	if err != nil {
@@ -179,6 +181,7 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 	if _, err = io.Copy(writer, ro.File.FileContents); err != nil && err != io.EOF {
 		return nil, err
 	}
+
 	defer ro.File.FileContents.Close()
 
 	// Populate the other parts of the form (if there are any)
@@ -205,8 +208,9 @@ func createBasicJSONRequest(httpMethod, userURL string, ro *RequestOptions) (*ht
 
 	tempBuffer := &bytes.Buffer{}
 
-	jsonEncoder := json.NewEncoder(tempBuffer)
-	jsonEncoder.Encode(ro.JSON)
+	if err := json.NewEncoder(tempBuffer).Encode(ro.JSON); err != nil {
+		return nil, err
+	}
 
 	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
 	if err != nil {
@@ -221,6 +225,7 @@ func createBasicJSONRequest(httpMethod, userURL string, ro *RequestOptions) (*ht
 func createBasicRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 
 	req, err := http.NewRequest(httpMethod, userURL, strings.NewReader(encodePostValues(ro.Data)))
+
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +261,7 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 			}).Dial,
 			TLSHandshakeTimeout: 10 * time.Second,
 
-			// He comes the user settings
+			// Here comes the user settings
 			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify == true},
 			DisableCompression: ro.DisableCompression,
 		},
