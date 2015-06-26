@@ -12,7 +12,7 @@ Features
 ========
 
 - Asynchronous and synchronous functionality built in
-- Doesn't depend on external libraries (functionality is designed to compliment `net/http`)
+- Doesn't depend on external libraries (functionality is designed to complement `net/http`)
 - Works with every version of Go from 1.3
 - Responses can be serialized into JSON and XML
 - Easy file uploads
