@@ -112,7 +112,7 @@ In the code below, once the file is downloaded – the `Response` struct no long
 ```go
 response := Get("http://some-wonderful-file.txt", nil)
 
-if err := resp.DownloadToFile("randomFile"); err != nil {
+if err := response.DownloadToFile("randomFile"); err != nil {
 	log.Println("Unable to download file: ", err)
 }
 
