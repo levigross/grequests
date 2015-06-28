@@ -3,7 +3,9 @@ dependencies:
       - go get github.com/axw/gocov/gocov
       - go get github.com/mattn/goveralls
       - go get github.com/golang/lint
-      - .ci_helpers/format.sh
 test:
   override:
+      - diff -u <(echo -n) <(gofmt -d ./)
+      - diff -u <(echo -n) <(go vet ./...)
+      - diff -u <(echo -n) <(golint ./...)
       - go test -v -race ./...
