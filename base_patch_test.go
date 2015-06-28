@@ -5,9 +5,9 @@ import (
 )
 
 func TestBasicPatchRequest(t *testing.T) {
-	resp := Patch("http://httpbin.org/patch", nil)
+	resp, err := Patch("http://httpbin.org/patch", nil)
 
-	if resp.Error != nil {
+	if err != nil {
 		t.Error("Unable to make request", resp.Error)
 	}
 

@@ -95,7 +95,12 @@ func TestGetNoOptions(t *testing.T) {
 }
 
 func TestGetSyncNoOptions(t *testing.T) {
-	verifyOkResponse(Get("http://httpbin.org/get", nil), t)
+	resp, err := Get("http://httpbin.org/get", nil)
+	if err != nil {
+		t.Error("Request failed: ", err)
+	}
+
+	verifyOkResponse(resp, t)
 }
 
 func TestGetNoOptionsGzip(t *testing.T) {

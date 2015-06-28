@@ -5,7 +5,7 @@ package grequests // import "github.com/levigross/grequests"
 // 	1. A URL
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Get(url string, ro *RequestOptions) *Response {
+func Get(url string, ro *RequestOptions) (*Response, error) {
 	return doRequest("GET", url, ro)
 }
 
@@ -21,7 +21,7 @@ func GetAsync(url string, ro *RequestOptions) chan *Response {
 // 	1. A URL
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Put(url string, ro *RequestOptions) *Response {
+func Put(url string, ro *RequestOptions) (*Response, error) {
 	return doRequest("PUT", url, ro)
 }
 
@@ -37,7 +37,7 @@ func PutAsync(url string, ro *RequestOptions) chan *Response {
 // 	1. A URL
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Patch(url string, ro *RequestOptions) *Response {
+func Patch(url string, ro *RequestOptions) (*Response, error) {
 	return doRequest("PATCH", url, ro)
 }
 
@@ -53,7 +53,7 @@ func PatchAsync(url string, ro *RequestOptions) chan *Response {
 // 	1. A URL
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Delete(url string, ro *RequestOptions) *Response {
+func Delete(url string, ro *RequestOptions) (*Response, error) {
 	return doRequest("DELETE", url, ro)
 }
 
@@ -69,7 +69,7 @@ func DeleteAsync(url string, ro *RequestOptions) chan *Response {
 // 	1. A URL
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Post(url string, ro *RequestOptions) *Response {
+func Post(url string, ro *RequestOptions) (*Response, error) {
 	return doRequest("POST", url, ro)
 }
 
@@ -85,7 +85,7 @@ func PostAsync(url string, ro *RequestOptions) chan *Response {
 // 	1. A URL
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Head(url string, ro *RequestOptions) *Response {
+func Head(url string, ro *RequestOptions) (*Response, error) {
 	return doRequest("HEAD", url, ro)
 }
 
@@ -101,7 +101,7 @@ func HeadAsync(url string, ro *RequestOptions) chan *Response {
 // 	1. A URL
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Options(url string, ro *RequestOptions) *Response {
+func Options(url string, ro *RequestOptions) (*Response, error) {
 	return doRequest("OPTIONS", url, ro)
 }
 

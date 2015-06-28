@@ -12,9 +12,9 @@ before_install:
   - go get -u github.com/axw/gocov/gocov
   - go get -u github.com/mattn/goveralls
   - go get -u github.com/golang/lint
+  - .ci_helpers/format.sh
 
 script:
-  - .ci_helpers/format.sh
   - go test -v -race -covermode=count -coverprofile=coverage.out
 
 after_success:

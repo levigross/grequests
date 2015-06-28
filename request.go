@@ -60,14 +60,15 @@ type RequestOptions struct {
 	Cookies []http.Cookie
 }
 
-func doRequest(requestVerb, url string, ro *RequestOptions) *Response {
+func doRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
 	return buildResponse(buildRequest(requestVerb, url, ro))
 }
 
 func doAsyncRequest(requestVerb, url string, ro *RequestOptions) chan *Response {
 	responseChan := make(chan *Response, 1)
 	go func() {
-		responseChan <- doRequest(requestVerb, url, ro)
+		resp, _ := doRequest(requestVerb, url, ro) // Error is already within the channel
+		responseChan <- resp
 	}()
 	return responseChan
 }

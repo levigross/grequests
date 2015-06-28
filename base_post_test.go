@@ -80,8 +80,14 @@ func TestBasicPostRequest(t *testing.T) {
 }
 
 func TestBasicRegularPostRequest(t *testing.T) {
-	verifyOkPostResponse(Post("http://httpbin.org/post",
-		&RequestOptions{Data: map[string]string{"One": "Two"}}), t)
+	resp, err := Post("http://httpbin.org/post",
+		&RequestOptions{Data: map[string]string{"One": "Two"}})
+
+	if err != nil {
+		t.Error("Cannot post: ", err)
+	}
+
+	verifyOkPostResponse(resp, t)
 
 }
 
@@ -115,19 +121,19 @@ func TestXMLPostRequestInvalidURL(t *testing.T) {
 }
 
 func TestBasicPostJsonRequestInvalidURL(t *testing.T) {
-	resp := Post("%../dir/",
+	_, err := Post("%../dir/",
 		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
 
-	if resp.Error == nil {
+	if err == nil {
 		t.Error("Somehow the request went through")
 	}
 }
 
 func TestBasicPostJsonRequestInvalidJSON(t *testing.T) {
-	resp := Post("http://httpbin.org/post",
+	resp, err := Post("http://httpbin.org/post",
 		&RequestOptions{JSON: math.NaN(), IsAjax: true})
 
-	if resp.Error == nil {
+	if err == nil {
 		t.Error("Somehow the request went through")
 	}
 
@@ -137,10 +143,10 @@ func TestBasicPostJsonRequestInvalidJSON(t *testing.T) {
 }
 
 func TestBasicPostJsonRequestInvalidXML(t *testing.T) {
-	resp := Post("http://httpbin.org/post",
+	resp, err := Post("http://httpbin.org/post",
 		&RequestOptions{XML: map[string]string{"One": "two"}, IsAjax: true})
 
-	if resp.Error == nil {
+	if err == nil {
 		t.Error("Somehow the request went through")
 	}
 

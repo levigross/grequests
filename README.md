@@ -32,8 +32,12 @@ Basic Examples
 Basic GET request:
 
 ```go
-resp := grequests.Get("http://httpbin.org/get", nil)
+resp, err := grequests.Get("http://httpbin.org/get", nil)
 // You can modify the request by passing an optional RequestOptions struct
+
+if err != nil {
+	log.Fatalln("Unable to make request: ", err)
+}
 
 fmt.Println(resp.String())
 // {
@@ -42,7 +46,7 @@ fmt.Println(resp.String())
 //     "Accept": "*/*",
 //     "Host": "httpbin.org",
 ```
-We also support asynchronous that return a `Response` channels
+We also support asynchronous functions that return a `Response` channel
 
 ```go
 respChan := grequests.GetAsync("http://httpbin.org/get", nil)
@@ -58,10 +62,10 @@ respChan := grequests.GetAsync("http://httpbin.org/get", nil)
 
 ```
 
-It is very important to check the `.Error` property of the `Response` e.g:
+When making a asynchronous request, it is very important to check the `.Error` property of the `Response` e.g:
 
 ```go
-resp := grequests.Get("http://httpbin.org/xml", nil)
+resp := grequests.GetAsync("http://httpbin.org/xml", nil)
 
 if resp.Error != nil {
 	log.Fatalln("Unable to make request", resp.Error)

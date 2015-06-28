@@ -3,7 +3,7 @@ dependencies:
       - go get github.com/axw/gocov/gocov
       - go get github.com/mattn/goveralls
       - go get github.com/golang/lint
+      - .ci_helpers/format.sh
 test:
   override:
-      - .ci_helpers/format.sh
       - go test -v -race ./...

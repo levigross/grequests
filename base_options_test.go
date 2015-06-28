@@ -5,8 +5,8 @@ import (
 )
 
 func TestBasicOPTIONSRequest(t *testing.T) {
-	resp := Options("http://httpbin.org/get", nil)
-	if resp.Error != nil {
+	resp, err := Options("http://httpbin.org/get", nil)
+	if err != nil {
 		t.Error("Unable to make OPTIONS request: ", resp.Error)
 	}
 

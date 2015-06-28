@@ -31,10 +31,10 @@ type Response struct {
 	internalByteBuffer *bytes.Buffer
 }
 
-func buildResponse(resp *http.Response, err error) *Response {
+func buildResponse(resp *http.Response, err error) (*Response, error) {
 	// If the connection didn't succeed we just return a blank response
 	if err != nil {
-		return &Response{Error: err}
+		return &Response{Error: err}, err
 	}
 
 	return &Response{
@@ -45,7 +45,7 @@ func buildResponse(resp *http.Response, err error) *Response {
 		StatusCode:         resp.StatusCode,
 		Header:             resp.Header,
 		internalByteBuffer: bytes.NewBuffer([]byte{}),
-	}
+	}, nil
 }
 
 // Read is part of our ability to support io.ReadCloser if someone wants to make use of the raw body
