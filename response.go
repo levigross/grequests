@@ -39,7 +39,7 @@ func buildResponse(resp *http.Response, err error) (*Response, error) {
 
 	return &Response{
 		// If your code is within the 2xx range – the response is considered `Ok`
-		Ok:                 resp.StatusCode <= 200 && resp.StatusCode < 300,
+		Ok:                 resp.StatusCode >= 200 && resp.StatusCode < 300,
 		Error:              nil,
 		RawResponse:        resp,
 		StatusCode:         resp.StatusCode,
