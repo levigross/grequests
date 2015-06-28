@@ -133,7 +133,7 @@ response.Bytes() == `file-bytes`
 response.String() == "file-string"
 
 // This will work because it will use the internal byte buffer
-if err := resp.DownloadToFile("randomFile"); err != nil {
+if err := response.DownloadToFile("randomFile"); err != nil {
 	log.Println("Unable to download file: ", err)
 }
 
