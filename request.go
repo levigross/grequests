@@ -58,6 +58,9 @@ type RequestOptions struct {
 
 	// Cookies is an array of `http.Cookie` that allows you to attach cookies to your request
 	Cookies []http.Cookie
+
+	// Proxies is a map in the following format *protocol* => proxy address e.g http => http://127.0.0.1:8080
+	Proxies map[string]*url.URL
 }
 
 func doRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
@@ -133,8 +136,12 @@ func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*h
 		return createMultiPartPostRequest(httpMethod, userURL, ro)
 	}
 
-	// This may be a PUT or PATCH request so we will just put the raw io.ReadCloser in the request body
+	// This may be a PUT or PATCH request so we will just put the raw
+	// io.ReadCloser in the request body
 	// and guess the MIME type from the file name
+
+	// At the moment, we will only support 1 file upload as a time
+	// when uploading using PUT or PATCH
 
 	req, err := http.NewRequest(httpMethod, userURL, ro.File.FileContents)
 
@@ -246,16 +253,46 @@ func encodePostValues(postValues map[string]string) string {
 	return urlValues.Encode() // This will sort all of the string values
 }
 
+// proxySettings will default to the default proxy settings if none are provided
+// if settings are provided – they will override the environment variables
+func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
+	// No proxies – lets use the default
+	if len(ro.Proxies) == 0 {
+		return http.ProxyFromEnvironment(req)
+	}
+
+	// There was a proxy specified – do we support the protocol?
+	if _, ok := ro.Proxies[req.URL.Scheme]; ok {
+		return ro.Proxies[req.URL.Scheme], nil
+	}
+
+	// Proxies were specified but not for any protocol that we use
+	return http.ProxyFromEnvironment(req)
+
+}
+
+// useDefaultClient will tell the "client creator" if a custom client is needed
+// it checks the following items (and will create a custom client of these are)
+// true
+// 1. Do we want to accept invalid SSL certificates?
+// 2. Do we want to disable compression?
+// 3. Do we want a custom proxy?
+func (ro RequestOptions) dontUseDefaultClient() bool {
+	return ro.InsecureSkipVerify == true ||
+		ro.DisableCompression == true ||
+		len(ro.Proxies) != 0
+}
+
 func buildHTTPClient(ro *RequestOptions) *http.Client {
 	// Does the user want to change the defaults?
-	if ro.InsecureSkipVerify != true && ro.DisableCompression != true {
+	if !ro.dontUseDefaultClient() {
 		return http.DefaultClient
 	}
 
 	return &http.Client{
 		Transport: &http.Transport{
 			// These are borrowed from the default transporter
-			Proxy: http.ProxyFromEnvironment,
+			Proxy: ro.proxySettings,
 			Dial: (&net.Dialer{
 				Timeout:   30 * time.Second,
 				KeepAlive: 30 * time.Second,

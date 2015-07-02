@@ -6,6 +6,8 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 )
@@ -92,6 +94,54 @@ type TestJSONCookies struct {
 
 func TestGetNoOptions(t *testing.T) {
 	verifyOkResponse(<-GetAsync("http://httpbin.org/get", nil), t)
+}
+
+func TestGetProxy(t *testing.T) {
+	ch := make(chan string, 1)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ch <- "real server"
+	}))
+
+	defer ts.Close()
+
+	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ch <- "proxy for " + r.URL.String()
+	}))
+
+	defer proxy.Close()
+
+	pu, err := url.Parse(proxy.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := Head(ts.URL, &RequestOptions{Proxies: map[string]*url.URL{pu.Scheme: pu}})
+
+	defer http.DefaultTransport.(*http.Transport).CloseIdleConnections()
+
+	if err != nil {
+		t.Error("Unable to make request: ", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Response is not OK for some reason: ", resp.StatusCode)
+	}
+
+	got := <-ch
+	want := "proxy for " + ts.URL + "/"
+	if got != want {
+		t.Errorf("want %q, got %q", want, got)
+	}
+}
+
+func TestGetSyncInvalidProxyScheme(t *testing.T) {
+	resp, err := Get("http://httpbin.org/get", &RequestOptions{Proxies: map[string]*url.URL{"gopher": nil}})
+	if err != nil {
+		t.Error("Request failed: ", err)
+	}
+
+	verifyOkResponse(resp, t)
 }
 
 func TestGetSyncNoOptions(t *testing.T) {
