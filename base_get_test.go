@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"testing"
+	"time"
 )
 
 type BasicGetResponse struct {
@@ -94,6 +95,20 @@ type TestJSONCookies struct {
 
 func TestGetNoOptions(t *testing.T) {
 	verifyOkResponse(<-GetAsync("http://httpbin.org/get", nil), t)
+}
+
+func TestGetCustomTLSHandshakeTimeout(t *testing.T) {
+	ro := &RequestOptions{TLSHandshakeTimeout: 10 * time.Millisecond}
+	if _, err := Get("https://httpbin.org", ro); err == nil {
+		t.Error("unexpected: successful TLS Handshake")
+	}
+}
+
+func TestGetCustomDialTimeout(t *testing.T) {
+	ro := &RequestOptions{DialTimeout: time.Millisecond}
+	if _, err := Get("http://httpbin.org:8888", ro); err == nil {
+		t.Error("unexpected: successful connection")
+	}
 }
 
 func TestGetProxy(t *testing.T) {
