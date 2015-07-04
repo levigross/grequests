@@ -108,15 +108,10 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 	httpClient := buildHTTPClient(ro)
 
 	// Build our URL
-	var err error
+	url, err := buildURLParams(url, ro.Params)
 
-	if ro.Params != nil {
-		url, err = buildURLParams(url, ro.Params)
-
-		if err != nil {
-			return nil, err
-		}
-
+	if err != nil {
+		return nil, err
 	}
 
 	// Build the request
@@ -128,7 +123,6 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 
 	// Do we need to add any HTTP headers or Basic Auth?
 	addHTTPHeaders(ro, req)
-
 	addCookies(ro, req)
 
 	return httpClient.Do(req)
@@ -344,7 +338,7 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 			TLSHandshakeTimeout: ro.TLSHandshakeTimeout,
 
 			// Here comes the user settings
-			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify == true},
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
 			DisableCompression: ro.DisableCompression,
 		},
 	}
