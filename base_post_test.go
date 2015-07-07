@@ -3,6 +3,7 @@ package grequests
 import (
 	"encoding/xml"
 	"math"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -74,8 +75,9 @@ type XMLPostMessage struct {
 }
 
 func TestBasicPostRequest(t *testing.T) {
-	verifyOkPostResponse(<-PostAsync("http://httpbin.org/post",
-		&RequestOptions{Data: map[string]string{"One": "Two"}}), t)
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{Data: map[string]string{"One": "Two"}})
+	verifyOkPostResponse(resp, t)
 
 }
 
@@ -92,7 +94,7 @@ func TestBasicRegularPostRequest(t *testing.T) {
 }
 
 func TestBasicPostRequestInvalidURL(t *testing.T) {
-	resp := <-PostAsync("%../dir/",
+	resp, _ := Post("%../dir/",
 		&RequestOptions{Data: map[string]string{"One": "Two"},
 			Params: map[string]string{"1": "2"}})
 
@@ -103,7 +105,7 @@ func TestBasicPostRequestInvalidURL(t *testing.T) {
 }
 
 func TestBasicPostRequestInvalidURLNoParams(t *testing.T) {
-	resp := <-PostAsync("%../dir/", &RequestOptions{Data: map[string]string{"One": "Two"}})
+	resp, _ := Post("%../dir/", &RequestOptions{Data: map[string]string{"One": "Two"}})
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
@@ -111,11 +113,31 @@ func TestBasicPostRequestInvalidURLNoParams(t *testing.T) {
 
 }
 
+func TestSessionPostRequestInvalidURLNoParams(t *testing.T) {
+	session := NewSession(nil)
+
+	if _, err := session.Post("%../dir/", &RequestOptions{Data: map[string]string{"One": "Two"}}); err == nil {
+		t.Error("Somehow the request went through")
+	}
+
+}
+
 func TestXMLPostRequestInvalidURL(t *testing.T) {
-	resp := <-PostAsync("%../dir/",
+	resp, _ := Post("%../dir/",
 		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
 
 	if resp.Error == nil {
+		t.Error("Somehow the request went through")
+	}
+}
+
+func TestXMLSessionPostRequestInvalidURL(t *testing.T) {
+	session := NewSession(nil)
+
+	_, err := session.Post("%../dir/",
+		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
+
+	if err == nil {
 		t.Error("Somehow the request went through")
 	}
 }
@@ -129,8 +151,34 @@ func TestBasicPostJsonRequestInvalidURL(t *testing.T) {
 	}
 }
 
+func TestSessionPostJsonRequestInvalidURL(t *testing.T) {
+	session := NewSession(nil)
+
+	_, err := session.Post("%../dir/",
+		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
+
+	if err == nil {
+		t.Error("Somehow the request went through")
+	}
+}
+
 func TestBasicPostJsonRequestInvalidJSON(t *testing.T) {
 	resp, err := Post("http://httpbin.org/post",
+		&RequestOptions{JSON: math.NaN(), IsAjax: true})
+
+	if err == nil {
+		t.Error("Somehow the request went through")
+	}
+
+	if resp.Ok == true {
+		t.Error("Somehow the request is OK")
+	}
+}
+
+func TestSessionPostJsonRequestInvalidJSON(t *testing.T) {
+	session := NewSession(nil)
+
+	resp, err := session.Post("http://httpbin.org/post",
 		&RequestOptions{JSON: math.NaN(), IsAjax: true})
 
 	if err == nil {
@@ -155,6 +203,21 @@ func TestBasicPostJsonRequestInvalidXML(t *testing.T) {
 	}
 }
 
+func TestSessionPostJsonRequestInvalidXML(t *testing.T) {
+	session := NewSession(nil)
+
+	resp, err := session.Post("http://httpbin.org/post",
+		&RequestOptions{XML: map[string]string{"One": "two"}, IsAjax: true})
+
+	if err == nil {
+		t.Error("Somehow the request went through")
+	}
+
+	if resp.Ok == true {
+		t.Error("Somehow the request is OK")
+	}
+}
+
 func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 
 	fd, err := FileUploadFromDisk("test_files/mypassword")
@@ -165,7 +228,7 @@ func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 
 	defer fd.FileContents.Close()
 
-	resp := <-PostAsync("%../dir/",
+	resp, _ := Post("%../dir/",
 		&RequestOptions{
 			File: fd,
 			Data: map[string]string{"One": "Two"},
@@ -176,9 +239,31 @@ func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 	}
 }
 
+func TestSessionPostRequestUploadInvalidURL(t *testing.T) {
+	session := NewSession(nil)
+
+	fd, err := FileUploadFromDisk("test_files/mypassword")
+
+	if err != nil {
+		t.Error("Unable to open file: ", err)
+	}
+
+	defer fd.FileContents.Close()
+
+	_, err = session.Post("%../dir/",
+		&RequestOptions{
+			File: fd,
+			Data: map[string]string{"One": "Two"},
+		})
+
+	if err == nil {
+		t.Fatal("Somehow able to make the request")
+	}
+}
+
 func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 
-	resp := <-PostAsync("%../dir/",
+	resp, _ := Post("%../dir/",
 		&RequestOptions{
 			File: &FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil},
 			Data: map[string]string{"One": "Two"},
@@ -189,8 +274,21 @@ func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 	}
 }
 
+func TestSessionPostRequestUploadInvalidFileUpload(t *testing.T) {
+	session := NewSession(nil)
+	_, err := session.Post("%../dir/",
+		&RequestOptions{
+			File: &FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil},
+			Data: map[string]string{"One": "Two"},
+		})
+
+	if err == nil {
+		t.Fatal("Somehow able to make the request")
+	}
+}
+
 func TestXMLPostRequest(t *testing.T) {
-	resp := <-PostAsync("http://httpbin.org/post",
+	resp, _ := Post("http://httpbin.org/post",
 		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
 
 	if resp.Error != nil {
@@ -225,7 +323,7 @@ func TestBasicPostRequestUpload(t *testing.T) {
 		t.Error("Unable to open file: ", err)
 	}
 
-	resp := <-PostAsync("http://httpbin.org/post",
+	resp, _ := Post("http://httpbin.org/post",
 		&RequestOptions{
 			File: fd,
 			Data: map[string]string{"One": "Two"},
@@ -276,7 +374,7 @@ func TestBasicPostRequestUpload(t *testing.T) {
 }
 
 func TestBasicPostJsonRequest(t *testing.T) {
-	resp := <-PostAsync("http://httpbin.org/post",
+	resp, _ := Post("http://httpbin.org/post",
 		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
 
 	if resp.Error != nil {
@@ -327,6 +425,79 @@ func TestBasicPostJsonRequest(t *testing.T) {
 
 }
 
+func TestPostSession(t *testing.T) {
+	session := NewSession(nil)
+
+	resp, err := session.Get("http://httpbin.org/cookies/set", &RequestOptions{Params: map[string]string{"one": "two"}})
+
+	if err != nil {
+		t.Fatal("Cannot set cookie: ", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	resp, err = session.Get("http://httpbin.org/cookies/set", &RequestOptions{Params: map[string]string{"two": "three"}})
+
+	if err != nil {
+		t.Fatal("Cannot set cookie: ", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	resp, err = session.Get("http://httpbin.org/cookies/set", &RequestOptions{Params: map[string]string{"three": "four"}})
+
+	if err != nil {
+		t.Fatal("Cannot set cookie: ", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	resp, err = session.Post("http://httpbin.org/post", &RequestOptions{Data: map[string]string{"one": "two"}})
+
+	if err != nil {
+		t.Fatal("Cannot set cookie: ", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	cookieURL, err := url.Parse("http://httpbin.org")
+	if err != nil {
+		t.Error("We (for some reason) cannot parse the cookie URL")
+	}
+
+	if len(session.HTTPClient.Jar.Cookies(cookieURL)) != 3 {
+		t.Error("Invalid number of cookies provided: ", session.HTTPClient.Jar.Cookies(cookieURL))
+	}
+
+	for _, cookie := range session.HTTPClient.Jar.Cookies(cookieURL) {
+		switch cookie.Name {
+		case "one":
+			if cookie.Value != "two" {
+				t.Error("Cookie value is not valid", cookie)
+			}
+		case "two":
+			if cookie.Value != "three" {
+				t.Error("Cookie value is not valid", cookie)
+			}
+		case "three":
+			if cookie.Value != "four" {
+				t.Error("Cookie value is not valid", cookie)
+			}
+		default:
+			t.Error("We should not have any other cookies: ", cookie)
+		}
+	}
+
+}
+
 // verifyResponse will verify the following conditions
 // 1. The request didn't return an error
 // 2. The response returned an OK (a status code within the 200 range)
@@ -372,4 +543,12 @@ func verifyOkPostResponse(resp *Response, t *testing.T) *BasicPostResponse {
 	}
 
 	return myJSONStruct
+}
+
+func TestPostInvalidURLSession(t *testing.T) {
+	session := NewSession(nil)
+
+	if _, err := session.Post("%../dir/", nil); err == nil {
+		t.Error("Some how the request was valid to make request ", err)
+	}
 }

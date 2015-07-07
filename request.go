@@ -14,6 +14,10 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"net/http/cookiejar"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 const (
@@ -70,6 +74,9 @@ type RequestOptions struct {
 	// Cookies is an array of `http.Cookie` that allows you to attach cookies to your request
 	Cookies []http.Cookie
 
+	// UseCookieJar will create a custom HTTP client that will process and store HTTP cookies when they are sent down
+	UseCookieJar bool
+
 	// Proxies is a map in the following format *protocol* => proxy address e.g http => http://127.0.0.1:8080
 	Proxies map[string]*url.URL
 
@@ -82,36 +89,39 @@ type RequestOptions struct {
 	DialTimeout time.Duration
 
 	// KeepAlive specifies the keep-alive period for an active
-	// network connection. If zero, keep-alives are not enabled.
+	// network connection. If zero, keep-alive are not enabled.
 	DialKeepAlive time.Duration
 }
 
-func doRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
-	return buildResponse(buildRequest(requestVerb, url, ro))
+func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
+	return buildResponse(buildRequest(requestVerb, url, ro, nil))
 }
 
-func doAsyncRequest(requestVerb, url string, ro *RequestOptions) chan *Response {
-	responseChan := make(chan *Response, 1)
-	go func() {
-		resp, _ := doRequest(requestVerb, url, ro) // Error is already within the channel
-		responseChan <- resp
-	}()
-	return responseChan
+func doSessionRequest(requestVerb, url string, ro *RequestOptions, httpClient *http.Client) (*Response, error) {
+	return buildResponse(buildRequest(requestVerb, url, ro, httpClient))
 }
 
 // buildRequest is where most of the magic happens for request processing
-func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, error) {
+func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.Client) (*http.Response, error) {
 	if ro == nil {
 		ro = &RequestOptions{}
 	}
 	// Create our own HTTP client
-	httpClient := buildHTTPClient(ro)
+
+	if httpClient == nil {
+		httpClient = BuildHTTPClient(*ro)
+	}
 
 	// Build our URL
-	url, err := buildURLParams(url, ro.Params)
 
-	if err != nil {
-		return nil, err
+	var (
+		err error
+	)
+
+	if len(ro.Params) != 0 {
+		if url, err = buildURLParams(url, ro.Params); err != nil {
+			return nil, err
+		}
 	}
 
 	// Build the request
@@ -254,6 +264,7 @@ func createBasicRequest(httpMethod, userURL string, ro *RequestOptions) (*http.R
 	if err != nil {
 		return nil, err
 	}
+
 	// The content type must be set to a regular form
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -288,7 +299,7 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 
 }
 
-// useDefaultClient will tell the "client creator" if a custom client is needed
+// DontUseDefaultClient will tell the "client creator" if a custom client is needed
 // it checks the following items (and will create a custom client of these are)
 // true
 // 1. Do we want to accept invalid SSL certificates?
@@ -297,18 +308,22 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 // 4. Do we want to change the default timeout for TLS Handshake?
 // 5. Do we want to change the default request timeout?
 // 6. Do we want to change the default connection timeout?
-func (ro RequestOptions) dontUseDefaultClient() bool {
+func (ro RequestOptions) DontUseDefaultClient() bool {
 	return ro.InsecureSkipVerify == true ||
 		ro.DisableCompression == true ||
 		len(ro.Proxies) != 0 ||
 		ro.TLSHandshakeTimeout != 0 ||
 		ro.DialTimeout != 0 ||
-		ro.DialKeepAlive != 0
+		ro.DialKeepAlive != 0 ||
+		len(ro.Cookies) != 0 ||
+		ro.UseCookieJar != false
 }
 
-func buildHTTPClient(ro *RequestOptions) *http.Client {
+// BuildHTTPClient is a function that will return a custom HTTP client based on the request options provided
+// the check is in UseDefaultClient
+func BuildHTTPClient(ro RequestOptions) *http.Client {
 	// Does the user want to change the defaults?
-	if !ro.dontUseDefaultClient() {
+	if !ro.DontUseDefaultClient() {
 		return http.DefaultClient
 	}
 
@@ -327,7 +342,11 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 		ro.DialKeepAlive = dialKeepAlive
 	}
 
+	// The function does not return an error ever... so we are just ignoring it
+	cookieJar, _ := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+
 	return &http.Client{
+		Jar: cookieJar,
 		Transport: &http.Transport{
 			// These are borrowed from the default transporter
 			Proxy: ro.proxySettings,
