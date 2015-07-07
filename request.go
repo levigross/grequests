@@ -16,6 +16,17 @@ import (
 	"time"
 )
 
+const (
+	// Default value for net.Dialer Timeout
+	dialTimeout = 30 * time.Second
+
+	// Default value for net.Dialer KeepAlive
+	dialKeepAlive = 30 * time.Second
+
+	// Default value for http.Transport TLSHandshakeTimeout
+	tslHandshakeTimeout = 10 * time.Second
+)
+
 // RequestOptions is the location that of where the data
 type RequestOptions struct {
 
@@ -61,6 +72,18 @@ type RequestOptions struct {
 
 	// Proxies is a map in the following format *protocol* => proxy address e.g http => http://127.0.0.1:8080
 	Proxies map[string]*url.URL
+
+	// TLSHandshakeTimeout specifies the maximum amount of time waiting to
+	// wait for a TLS handshake. Zero means no timeout.
+	TLSHandshakeTimeout time.Duration
+
+	// DialTimeout is the maximum amount of time a dial will wait for
+	// a connect to complete.
+	DialTimeout time.Duration
+
+	// KeepAlive specifies the keep-alive period for an active
+	// network connection. If zero, keep-alives are not enabled.
+	DialKeepAlive time.Duration
 }
 
 func doRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
@@ -85,15 +108,10 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 	httpClient := buildHTTPClient(ro)
 
 	// Build our URL
-	var err error
+	url, err := buildURLParams(url, ro.Params)
 
-	if ro.Params != nil {
-		url, err = buildURLParams(url, ro.Params)
-
-		if err != nil {
-			return nil, err
-		}
-
+	if err != nil {
+		return nil, err
 	}
 
 	// Build the request
@@ -105,7 +123,6 @@ func buildRequest(httpMethod, url string, ro *RequestOptions) (*http.Response, e
 
 	// Do we need to add any HTTP headers or Basic Auth?
 	addHTTPHeaders(ro, req)
-
 	addCookies(ro, req)
 
 	return httpClient.Do(req)
@@ -277,10 +294,16 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 // 1. Do we want to accept invalid SSL certificates?
 // 2. Do we want to disable compression?
 // 3. Do we want a custom proxy?
+// 4. Do we want to change the default timeout for TLS Handshake?
+// 5. Do we want to change the default request timeout?
+// 6. Do we want to change the default connection timeout?
 func (ro RequestOptions) dontUseDefaultClient() bool {
 	return ro.InsecureSkipVerify == true ||
 		ro.DisableCompression == true ||
-		len(ro.Proxies) != 0
+		len(ro.Proxies) != 0 ||
+		ro.TLSHandshakeTimeout != 0 ||
+		ro.DialTimeout != 0 ||
+		ro.DialKeepAlive != 0
 }
 
 func buildHTTPClient(ro *RequestOptions) *http.Client {
@@ -289,18 +312,33 @@ func buildHTTPClient(ro *RequestOptions) *http.Client {
 		return http.DefaultClient
 	}
 
+	// Using the user config for tls timeout or default
+	if ro.TLSHandshakeTimeout == 0 {
+		ro.TLSHandshakeTimeout = tslHandshakeTimeout
+	}
+
+	// Using the user config for dial timeout or default
+	if ro.DialTimeout == 0 {
+		ro.DialTimeout = dialTimeout
+	}
+
+	// Using the user config for dial keep alive or default
+	if ro.DialKeepAlive == 0 {
+		ro.DialKeepAlive = dialKeepAlive
+	}
+
 	return &http.Client{
 		Transport: &http.Transport{
 			// These are borrowed from the default transporter
 			Proxy: ro.proxySettings,
 			Dial: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
+				Timeout:   ro.DialTimeout,
+				KeepAlive: ro.DialKeepAlive,
 			}).Dial,
-			TLSHandshakeTimeout: 10 * time.Second,
+			TLSHandshakeTimeout: ro.TLSHandshakeTimeout,
 
 			// Here comes the user settings
-			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify == true},
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
 			DisableCompression: ro.DisableCompression,
 		},
 	}
