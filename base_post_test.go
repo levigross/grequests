@@ -1,7 +1,10 @@
 package grequests
 
 import (
+	"bytes"
 	"encoding/xml"
+	"fmt"
+	"io"
 	"math"
 	"net/url"
 	"strings"
@@ -72,6 +75,17 @@ type XMLPostMessage struct {
 	Name   string
 	Age    int
 	Height int
+}
+
+type dataAndErrorBuffer struct {
+	err error
+	bytes.Buffer
+}
+
+func (dataAndErrorBuffer) Close() error { return nil }
+
+func (r dataAndErrorBuffer) Read(p []byte) (n int, err error) {
+	return 0, r.err
 }
 
 func TestBasicPostRequest(t *testing.T) {
@@ -313,6 +327,34 @@ func TestXMLPostRequest(t *testing.T) {
 		t.Errorf("Unable to serialize XML response from within JSON %#v ", myXMLStruct)
 	}
 
+}
+
+func TestBasicPostRequestUploadErrorReader(t *testing.T) {
+	var rd dataAndErrorBuffer
+	rd.err = fmt.Errorf("Random Error")
+	_, err := Post("http://httpbin.org/post",
+		&RequestOptions{
+			File: &FileUpload{FileName: "Random.test", FileContents: rd},
+			Data: map[string]string{"One": "Two"},
+		})
+
+	if err == nil {
+		t.Error("Somehow our test didn't fail...")
+	}
+}
+
+func TestBasicPostRequestUploadErrorEOFReader(t *testing.T) {
+	var rd dataAndErrorBuffer
+	rd.err = io.EOF
+	_, err := Post("http://httpbin.org/post",
+		&RequestOptions{
+			File: &FileUpload{FileName: "Random.test", FileContents: rd},
+			Data: map[string]string{"One": "Two"},
+		})
+
+	if err != nil {
+		t.Error("Somehow our test didn't fail... ", err)
+	}
 }
 
 func TestBasicPostRequestUpload(t *testing.T) {

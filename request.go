@@ -210,7 +210,7 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 	}
 
 	if ro.File.FileContents == nil {
-		return nil, errors.New("pointer FileContents cannot be nil")
+		return nil, errors.New("grequests: Pointer FileContents cannot be nil")
 	}
 
 	if _, err = io.Copy(writer, ro.File.FileContents); err != nil && err != io.EOF {
