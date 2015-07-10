@@ -279,7 +279,7 @@ func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 
 	resp, _ := Post("%../dir/",
 		&RequestOptions{
-			File: &FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil},
+			File: &FileUpload{FileName: `\x00%'"üfdsufhid\Ä\"D\\\"JS%25//'"H•\\\\'"¶•ªç∂\uf8\x8AKÔÓÔ`, FileContents: nil},
 			Data: map[string]string{"One": "Two"},
 		})
 
