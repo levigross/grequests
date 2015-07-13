@@ -277,6 +277,8 @@ func TestGetSession(t *testing.T) {
 		}
 	}
 
+	session.CloseIdleConnections()
+
 }
 
 //func TestGetNoOptionsDeflate(t *testing.T) {

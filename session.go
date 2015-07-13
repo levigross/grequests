@@ -85,3 +85,8 @@ func (s *Session) Head(url string, ro *RequestOptions) (*Response, error) {
 func (s *Session) Options(url string, ro *RequestOptions) (*Response, error) {
 	return doSessionRequest("OPTIONS", url, ro, s.HTTPClient)
 }
+
+// CloseIdleConnections closes the idle connections that a session client may make use of
+func (s *Session) CloseIdleConnections() {
+	s.HTTPClient.Transport.(*http.Transport).CloseIdleConnections()
+}
