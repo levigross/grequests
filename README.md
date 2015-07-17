@@ -45,31 +45,6 @@ fmt.Println(resp.String())
 //     "Accept": "*/*",
 //     "Host": "httpbin.org",
 ```
-We also support asynchronous functions that return a `Response` channel
-
-```go
-respChan := grequests.GetAsync("http://httpbin.org/get", nil)
-	select {
-	case resp := <-respChan:
-		fmt.Println(resp.String())
-    // {
-    //   "args": {},
-    //   "headers": {
-    //     "Accept": "*/*",
-    //     "Host": "httpbin.org",
-	}
-
-```
-
-When making a asynchronous request, it is very important to check the `.Error` property of the `Response` e.g:
-
-```go
-resp := grequests.GetAsync("http://httpbin.org/xml", nil)
-
-if resp.Error != nil {
-	log.Fatalln("Unable to make request", resp.Error)
-}
-```
 
 If an error occurs all of the other properties and methods of a `Response` will be `nil`
 
