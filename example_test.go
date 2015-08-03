@@ -10,7 +10,7 @@ import (
 	"github.com/levigross/grequests"
 )
 
-func Example_basic_Get() {
+func Example_basicGet() {
 	// This is a very basic GET request
 	resp, err := grequests.Get("http://httpbin.org/get", nil)
 
@@ -130,6 +130,100 @@ func Example_parse_XML() {
 	if userXML.Title != "Sample Slide Show" {
 		log.Printf("Invalid XML serialization %#v", userXML)
 	}
+}
+
+func Example_customUserAgent() {
+	ro := &grequests.RequestOptions{UserAgent: "LeviBot 0.1"}
+	resp, err := grequests.Get("http://httpbin.org/get", ro)
+
+	if err != nil {
+		log.Fatal("Oops something went wrong: ", err)
+	}
+
+	if resp.Ok != true {
+		log.Println("Request did not return OK")
+	}
+
+	log.Println(resp.String())
+}
+
+func Example_basicAuth() {
+	ro := &grequests.RequestOptions{Auth: []string{"Levi", "Bot"}}
+	resp, err := grequests.Get("http://httpbin.org/get", ro)
+	// Not the usual JSON so copy and paste from below
+
+	if err != nil {
+		log.Println("Unable to make request", err)
+	}
+
+	if resp.Ok != true {
+		log.Println("Request did not return OK")
+	}
+}
+
+func Example_customHTTPHeader() {
+	ro := &grequests.RequestOptions{UserAgent: "LeviBot 0.1",
+		Headers: map[string]string{"X-Wonderful-Header": "1"}}
+	resp, err := grequests.Get("http://httpbin.org/get", ro)
+	// Not the usual JSON so copy and paste from below
+
+	if err != nil {
+		log.Println("Unable to make request", err)
+	}
+
+	if resp.Ok != true {
+		log.Println("Request did not return OK")
+	}
+}
+
+func Example_acceptInvalidTLSCert() {
+	ro := &grequests.RequestOptions{InsecureSkipVerify: true}
+	resp, err := grequests.Get("https://www.pcwebshop.co.uk/", ro)
+
+	if err != nil {
+		log.Println("Unable to make request", err)
+	}
+
+	if resp.Ok != true {
+		log.Println("Request did not return OK")
+	}
+}
+
+func Example_urlQueryParams() {
+	ro := &grequests.RequestOptions{
+		Params: map[string]string{"Hello": "World", "Goodbye": "World"},
+	}
+	resp, err := grequests.Get("http://httpbin.org/get", ro)
+	// url will now be http://httpbin.org/get?hello=world&goodbye=world
+
+	if err != nil {
+		log.Println("Unable to make request", err)
+	}
+
+	if resp.Ok != true {
+		log.Println("Request did not return OK")
+	}
+}
+
+func Example_downloadFile() {
+	resp, err := grequests.Get("http://httpbin.org/get", nil)
+
+	if err != nil {
+		log.Println("Unable to make request", err)
+	}
+
+	if resp.Ok != true {
+		log.Println("Request did not return OK")
+	}
+
+	if err := resp.DownloadToFile("randomFile"); err != nil {
+		log.Println("Unable to download to file: ", err)
+	}
+
+	if err != nil {
+		log.Println("Unable to download file", err)
+	}
+
 }
 
 func xmlASCIIDecoder(charset string, input io.Reader) (io.Reader, error) {
