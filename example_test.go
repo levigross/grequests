@@ -10,7 +10,7 @@ import (
 	"github.com/levigross/grequests"
 )
 
-func Example_basic_get() {
+func Example_basic_Get() {
 	// This is a very basic GET request
 	resp, err := grequests.Get("http://httpbin.org/get", nil)
 
@@ -45,7 +45,7 @@ func Example_proxy() {
 	log.Println(resp)
 }
 
-func Example_Cookies() {
+func Example_cookies() {
 	resp, err := grequests.Get("http://httpbin.org/cookies",
 		&grequests.RequestOptions{
 			Cookies: []http.Cookie{
@@ -74,7 +74,7 @@ func Example_Cookies() {
 	log.Println(resp.String())
 }
 
-func Example_Session() {
+func Example_session() {
 	session := grequests.NewSession(nil)
 
 	resp, err := session.Get("http://httpbin.org/cookies/set", &grequests.RequestOptions{Params: map[string]string{"one": "two"}})
@@ -91,7 +91,7 @@ func Example_Session() {
 
 }
 
-func Example_Parse_XML() {
+func Example_parse_XML() {
 	type GetXMLSample struct {
 		XMLName xml.Name `xml:"slideshow"`
 		Title   string   `xml:"title,attr"`
