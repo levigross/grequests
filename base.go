@@ -1,5 +1,5 @@
 // Package grequests implements a friendly API over Go's existing net/http library
-package grequests // import "github.com/levigross/grequests"
+package grequests
 
 // Get takes 2 parameters and returns a Response Struct. These two options are:
 // 	1. A URL

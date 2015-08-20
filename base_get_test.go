@@ -98,6 +98,12 @@ func TestGetNoOptions(t *testing.T) {
 	verifyOkResponse(resp, t)
 }
 
+func TestGetNoOptionsCustomClient(t *testing.T) {
+	resp, _ := Get("http://httpbin.org/get",
+		&RequestOptions{HTTPClient: http.DefaultClient})
+	verifyOkResponse(resp, t)
+}
+
 func TestGetCustomTLSHandshakeTimeout(t *testing.T) {
 	ro := &RequestOptions{TLSHandshakeTimeout: 10 * time.Millisecond}
 	if _, err := Get("https://httpbin.org", ro); err == nil {

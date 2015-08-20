@@ -25,6 +25,21 @@ func Example_basicGet() {
 	log.Println(resp.String())
 }
 
+func Example_basicGetCustomHTTPClient() {
+	// This is a very basic GET request
+	resp, err := grequests.Get("http://httpbin.org/get", &grequests.RequestOptions{HTTPClient: http.DefaultClient})
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	if resp.Ok != true {
+		log.Println("Request did not return OK")
+	}
+
+	log.Println(resp.String())
+}
+
 func Example_proxy() {
 	proxyURL, err := url.Parse("http://127.0.0.1:8080") // Proxy URL
 	if err != nil {

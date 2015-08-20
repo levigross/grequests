@@ -91,6 +91,10 @@ type RequestOptions struct {
 	// KeepAlive specifies the keep-alive period for an active
 	// network connection. If zero, keep-alive are not enabled.
 	DialKeepAlive time.Duration
+
+	// HTTPClient can be provided if you wish to supply a custom HTTP client
+	// this is useful if you want to use an OAUTH client with your request
+	HTTPClient *http.Client
 }
 
 func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
@@ -322,6 +326,11 @@ func (ro RequestOptions) DontUseDefaultClient() bool {
 // BuildHTTPClient is a function that will return a custom HTTP client based on the request options provided
 // the check is in UseDefaultClient
 func BuildHTTPClient(ro RequestOptions) *http.Client {
+
+	if ro.HTTPClient != nil {
+		return ro.HTTPClient
+	}
+
 	// Does the user want to change the defaults?
 	if !ro.DontUseDefaultClient() {
 		return http.DefaultClient
