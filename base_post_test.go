@@ -50,6 +50,28 @@ type BasicPostJSONResponse struct {
 	URL    string `json:"url"`
 }
 
+type BasicMultiFileUploadResponse struct {
+	Args  struct{} `json:"args"`
+	Data  string   `json:"data"`
+	Files struct {
+		File1 string `json:"file1"`
+		File2 string `json:"file2"`
+	} `json:"files"`
+	Form struct {
+		One string `json:"One"`
+	} `json:"form"`
+	Headers struct {
+		AcceptEncoding string `json:"Accept-Encoding"`
+		ContentLength  string `json:"Content-Length"`
+		ContentType    string `json:"Content-Type"`
+		Host           string `json:"Host"`
+		UserAgent      string `json:"User-Agent"`
+	} `json:"headers"`
+	JSON   interface{} `json:"json"`
+	Origin string      `json:"origin"`
+	URL    string      `json:"url"`
+}
+
 type BasicPostFileUpload struct {
 	Args  struct{} `json:"args"`
 	Data  string   `json:"data"`
@@ -240,12 +262,12 @@ func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 		t.Error("Unable to open file: ", err)
 	}
 
-	defer fd.FileContents.Close()
+	defer fd[0].FileContents.Close()
 
 	resp, _ := Post("%../dir/",
 		&RequestOptions{
-			File: fd,
-			Data: map[string]string{"One": "Two"},
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if resp.Error == nil {
@@ -262,12 +284,12 @@ func TestSessionPostRequestUploadInvalidURL(t *testing.T) {
 		t.Error("Unable to open file: ", err)
 	}
 
-	defer fd.FileContents.Close()
+	defer fd[0].FileContents.Close()
 
 	_, err = session.Post("%../dir/",
 		&RequestOptions{
-			File: fd,
-			Data: map[string]string{"One": "Two"},
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if err == nil {
@@ -279,8 +301,8 @@ func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 
 	resp, _ := Post("%../dir/",
 		&RequestOptions{
-			File: &FileUpload{FileName: `\x00%'"üfdsufhid\Ä\"D\\\"JS%25//'"H•\\\\'"¶•ªç∂\uf8\x8AKÔÓÔ`, FileContents: nil},
-			Data: map[string]string{"One": "Two"},
+			Files: []FileUpload{FileUpload{FileName: `\x00%'"üfdsufhid\Ä\"D\\\"JS%25//'"H•\\\\'"¶•ªç∂\uf8\x8AKÔÓÔ`, FileContents: nil}},
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if resp.Error == nil {
@@ -292,8 +314,8 @@ func TestSessionPostRequestUploadInvalidFileUpload(t *testing.T) {
 	session := NewSession(nil)
 	_, err := session.Post("%../dir/",
 		&RequestOptions{
-			File: &FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil},
-			Data: map[string]string{"One": "Two"},
+			Files: []FileUpload{FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil}},
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if err == nil {
@@ -334,8 +356,8 @@ func TestBasicPostRequestUploadErrorReader(t *testing.T) {
 	rd.err = fmt.Errorf("Random Error")
 	_, err := Post("http://httpbin.org/post",
 		&RequestOptions{
-			File: &FileUpload{FileName: "Random.test", FileContents: rd},
-			Data: map[string]string{"One": "Two"},
+			Files: []FileUpload{FileUpload{FileName: "Random.test", FileContents: rd}},
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if err == nil {
@@ -348,8 +370,8 @@ func TestBasicPostRequestUploadErrorEOFReader(t *testing.T) {
 	rd.err = io.EOF
 	_, err := Post("http://httpbin.org/post",
 		&RequestOptions{
-			File: &FileUpload{FileName: "Random.test", FileContents: rd},
-			Data: map[string]string{"One": "Two"},
+			Files: []FileUpload{FileUpload{FileName: "Random.test", FileContents: rd}},
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if err != nil {
@@ -367,8 +389,8 @@ func TestBasicPostRequestUpload(t *testing.T) {
 
 	resp, _ := Post("http://httpbin.org/post",
 		&RequestOptions{
-			File: fd,
-			Data: map[string]string{"One": "Two"},
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if resp.Error != nil {
@@ -395,6 +417,67 @@ func TestBasicPostRequestUpload(t *testing.T) {
 
 	if myJSONStruct.Files.File != "saucy sauce" {
 		t.Error("File upload contents have been modified: ", myJSONStruct.Files.File)
+	}
+
+	if resp.Bytes() != nil {
+		t.Error("JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
+	}
+
+	if resp.String() != "" {
+		t.Error("JSON decoding did not fully consume the response stream (String)", resp.String())
+	}
+
+	if resp.StatusCode != 200 {
+		t.Error("Response returned a non-200 code")
+	}
+
+	if myJSONStruct.Form.One != "Two" {
+		t.Error("Unable to parse form properly", myJSONStruct.Form)
+	}
+
+}
+
+func TestBasicPostRequestUploadMultipleFiles(t *testing.T) {
+
+	fd, err := FileUploadFromGlob("test_files/*")
+
+	if err != nil {
+		t.Error("Unable to glob file: ", err)
+	}
+
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
+		})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicMultiFileUploadResponse{}
+
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to coerce to JSON", err)
+	}
+
+	if myJSONStruct.URL != "http://httpbin.org/post" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
+	}
+
+	if myJSONStruct.Headers.Host != "httpbin.org" {
+		t.Error("The host header is invalid")
+	}
+
+	if myJSONStruct.Files.File2 != "saucy sauce" {
+		t.Error("File upload contents have been modified: ", myJSONStruct.Files.File2)
+	}
+	if myJSONStruct.Files.File1 != "I am just here to test the glob" {
+		t.Error("File upload contents have been modified: ", myJSONStruct.Files.File1)
 	}
 
 	if resp.Bytes() != nil {

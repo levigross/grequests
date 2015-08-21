@@ -288,8 +288,8 @@ func Example_postFileUpload() {
 	// This will upload the file as a multipart mime request
 	resp, err := grequests.Post("http://httpbin.org/post",
 		&grequests.RequestOptions{
-			File: fd,
-			Data: map[string]string{"One": "Two"},
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if err != nil {

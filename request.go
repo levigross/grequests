@@ -17,6 +17,8 @@ import (
 
 	"net/http/cookiejar"
 
+	"strconv"
+
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -42,7 +44,7 @@ type RequestOptions struct {
 	Params map[string]string
 
 	// Files is where you can include files to upload. The use of this data structure is limited to POST requests
-	File *FileUpload
+	Files []FileUpload
 
 	// JSON can be used when you wish to send JSON within the request body
 	JSON interface{}
@@ -151,7 +153,7 @@ func buildHTTPRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Req
 		return createBasicXMLRequest(httpMethod, userURL, ro)
 	}
 
-	if ro.File != nil {
+	if ro.Files != nil {
 		return createFileUploadRequest(httpMethod, userURL, ro)
 	}
 
@@ -174,13 +176,13 @@ func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*h
 	// At the moment, we will only support 1 file upload as a time
 	// when uploading using PUT or PATCH
 
-	req, err := http.NewRequest(httpMethod, userURL, ro.File.FileContents)
+	req, err := http.NewRequest(httpMethod, userURL, ro.Files[0].FileContents)
 
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", mime.TypeByExtension(ro.File.FileName))
+	req.Header.Set("Content-Type", mime.TypeByExtension(ro.Files[0].FileName))
 
 	return req, nil
 
@@ -207,28 +209,39 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 	requestBody := &bytes.Buffer{}
 
 	multipartWriter := multipart.NewWriter(requestBody)
-	writer, err := multipartWriter.CreateFormFile("file", ro.File.FileName)
 
-	if err != nil {
-		return nil, err
+	for i, f := range ro.Files {
+
+		if f.FileContents == nil {
+			return nil, errors.New("grequests: Pointer FileContents cannot be nil")
+		}
+
+		fileName := "file"
+
+		if len(ro.Files) > 1 {
+			fileName = strings.Join([]string{"file", strconv.Itoa(i + 1)}, "")
+		}
+
+		writer, err := multipartWriter.CreateFormFile(fileName, f.FileName)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err = io.Copy(writer, f.FileContents); err != nil && err != io.EOF {
+			return nil, err
+		}
+
+		f.FileContents.Close()
+
 	}
-
-	if ro.File.FileContents == nil {
-		return nil, errors.New("grequests: Pointer FileContents cannot be nil")
-	}
-
-	if _, err = io.Copy(writer, ro.File.FileContents); err != nil && err != io.EOF {
-		return nil, err
-	}
-
-	defer ro.File.FileContents.Close()
 
 	// Populate the other parts of the form (if there are any)
 	for key, value := range ro.Data {
 		multipartWriter.WriteField(key, value)
 	}
 
-	if err = multipartWriter.Close(); err != nil {
+	if err := multipartWriter.Close(); err != nil {
 		return nil, err
 	}
 

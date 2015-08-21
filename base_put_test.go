@@ -27,8 +27,8 @@ func TestBasicPutUploadRequest(t *testing.T) {
 
 	resp, _ := Put("http://httpbin.org/put",
 		&RequestOptions{
-			File: fd,
-			Data: map[string]string{"One": "Two"},
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if resp.Error != nil {
@@ -50,8 +50,8 @@ func TestBasicPutUploadRequestInvalidURL(t *testing.T) {
 
 	_, err = Put("%../dir/",
 		&RequestOptions{
-			File: fd,
-			Data: map[string]string{"One": "Two"},
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if err == nil {
@@ -70,8 +70,8 @@ func TestSessionPutUploadRequestInvalidURL(t *testing.T) {
 
 	_, err = session.Put("%../dir/",
 		&RequestOptions{
-			File: fd,
-			Data: map[string]string{"One": "Two"},
+			Files: fd,
+			Data:  map[string]string{"One": "Two"},
 		})
 
 	if err == nil {
