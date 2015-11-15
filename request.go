@@ -52,7 +52,7 @@ type RequestOptions struct {
 	// XML can be used if you wish to send XML within the request body
 	XML interface{}
 
-	// If you want to add custom HTTP headers to the request, this is your friend
+	// Headers if you want to add custom HTTP headers to the request, this is your friend
 	Headers map[string]string
 
 	// InsecureSkipVerify is a flag that specifies if we should validate the server's TLS certificate. It should be noted that
@@ -97,6 +97,17 @@ type RequestOptions struct {
 	// HTTPClient can be provided if you wish to supply a custom HTTP client
 	// this is useful if you want to use an OAUTH client with your request
 	HTTPClient *http.Client
+
+	// RedirectLocationTrusted is a flag that will enable all headers to be
+	// forwarded to the redirect location. Otherwise, the headers specified in
+	// `SensitiveHTTPHeaders` will be removed from the request
+	RedirectLocationTrusted bool
+
+	SensitiveHTTPHeaders map[string]struct{}
+
+	// RedirectLimit is the acceptable amount of redirects that we should expect before returning an error
+	// be default this is set to 30. You can change this globally by modifying the `RedirectLimit` variable
+	RedirectLimit int
 }
 
 func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
@@ -119,10 +130,7 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 	}
 
 	// Build our URL
-
-	var (
-		err error
-	)
+	var err error
 
 	if len(ro.Params) != 0 {
 		if url, err = buildURLParams(url, ro.Params); err != nil {
@@ -140,6 +148,7 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 	// Do we need to add any HTTP headers or Basic Auth?
 	addHTTPHeaders(ro, req)
 	addCookies(ro, req)
+	addRedirectFunctionality(httpClient, ro)
 
 	return httpClient.Do(req)
 }
@@ -316,7 +325,7 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 
 }
 
-// DontUseDefaultClient will tell the "client creator" if a custom client is needed
+// dontUseDefaultClient will tell the "client creator" if a custom client is needed
 // it checks the following items (and will create a custom client of these are)
 // true
 // 1. Do we want to accept invalid SSL certificates?
@@ -325,7 +334,7 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 // 4. Do we want to change the default timeout for TLS Handshake?
 // 5. Do we want to change the default request timeout?
 // 6. Do we want to change the default connection timeout?
-func (ro RequestOptions) DontUseDefaultClient() bool {
+func (ro RequestOptions) dontUseDefaultClient() bool {
 	return ro.InsecureSkipVerify == true ||
 		ro.DisableCompression == true ||
 		len(ro.Proxies) != 0 ||
@@ -345,7 +354,7 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 	}
 
 	// Does the user want to change the defaults?
-	if !ro.DontUseDefaultClient() {
+	if !ro.dontUseDefaultClient() {
 		return http.DefaultClient
 	}
 

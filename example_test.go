@@ -64,12 +64,12 @@ func Example_cookies() {
 	resp, err := grequests.Get("http://httpbin.org/cookies",
 		&grequests.RequestOptions{
 			Cookies: []http.Cookie{
-				http.Cookie{
+				{
 					Name:     "TestCookie",
 					Value:    "Random Value",
 					HttpOnly: true,
 					Secure:   false,
-				}, http.Cookie{
+				}, {
 					Name:     "AnotherCookie",
 					Value:    "Some Value",
 					HttpOnly: true,

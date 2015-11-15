@@ -25,7 +25,7 @@ func FileUploadFromDisk(fileName string) ([]FileUpload, error) {
 		return nil, err
 	}
 
-	return []FileUpload{FileUpload{FileContents: fd, FileName: fileName}}, nil
+	return []FileUpload{{FileContents: fd, FileName: fileName}}, nil
 
 }
 

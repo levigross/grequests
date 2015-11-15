@@ -184,12 +184,12 @@ func TestGetWithCookies(t *testing.T) {
 	resp, err := Get("http://httpbin.org/cookies",
 		&RequestOptions{
 			Cookies: []http.Cookie{
-				http.Cookie{
+				{
 					Name:     "TestCookie",
 					Value:    "Random Value",
 					HttpOnly: true,
 					Secure:   false,
-				}, http.Cookie{
+				}, {
 					Name:     "AnotherCookie",
 					Value:    "Some Value",
 					HttpOnly: true,
@@ -409,30 +409,42 @@ func TestGetCustomHeader(t *testing.T) {
 
 func TestGetInvalidSSLCertNoVerify(t *testing.T) {
 	ro := &RequestOptions{InsecureSkipVerify: true}
-	resp, err := Get("https://www.pcwebshop.co.uk/", ro)
-	if err != nil {
-		t.Error("Unable to make request", err)
+	for _, badSSL := range []string{
+		"https://self-signed.badssl.com/",
+		"https://expired.badssl.com/",
+		"https://wrong.host.badssl.com/",
+	} {
+		resp, err := Get(badSSL, ro)
+		if err != nil {
+			t.Error("Unable to make request", err)
+		}
+		if resp.Ok != true {
+			t.Error("Request did not return OK")
+		}
 	}
 
-	if resp.Ok != true {
-		t.Error("Request did not return OK")
-	}
 }
 
 func TestGetInvalidSSLCertNoVerifyNoOptions(t *testing.T) {
-	resp, err := Get("https://www.pcwebshop.co.uk/", nil)
-	if err == nil {
-		t.Error("Unable to make request", err)
-	}
+	for _, badSSL := range []string{
+		"https://self-signed.badssl.com/",
+		"https://expired.badssl.com/",
+		"https://wrong.host.badssl.com/",
+	} {
+		resp, err := Get(badSSL, nil)
+		if err == nil {
+			t.Error("Unable to make request", err)
+		}
 
-	if resp.Ok == true {
-		t.Error("Request did not return OK")
+		if resp.Ok == true {
+			t.Error("Request did not return OK")
+		}
 	}
 }
 
 func TestGetInvalidSSLCertNoCompression(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: true}
-	resp, err := Get("https://www.pcwebshop.co.uk/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", ro)
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -446,7 +458,7 @@ func TestGetInvalidSSLCertNoCompression(t *testing.T) {
 
 func TestGetInvalidSSLCertWithCompression(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: false}
-	resp, err := Get("https://www.pcwebshop.co.uk/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", ro)
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -460,7 +472,7 @@ func TestGetInvalidSSLCertWithCompression(t *testing.T) {
 
 func TestErrorResponseNOOP(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: false}
-	resp, err := Get("https://www.pcwebshop.co.uk/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", ro)
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -516,7 +528,7 @@ func TestErrorResponseNOOP(t *testing.T) {
 
 func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: true}
-	resp, err := Get("https://www.pcwebshop.co.uk/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", ro)
 
 	if err != nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -530,7 +542,7 @@ func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
 
 func TestGetInvalidSSLCertWithCompressionNoVerify(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: false}
-	resp, err := Get("https://www.pcwebshop.co.uk/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", ro)
 
 	if err != nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -544,7 +556,7 @@ func TestGetInvalidSSLCertWithCompressionNoVerify(t *testing.T) {
 
 func TestGetInvalidSSLCert(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1"}
-	resp, err := Get("https://www.pcwebshop.co.uk/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", ro)
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -765,6 +777,122 @@ func TestGetString(t *testing.T) {
 		t.Error("Internal Buffer not cleaned up")
 	}
 
+}
+
+func TestGetRedirectHeaderCopy(t *testing.T) {
+	srv := httptest.NewServer(http.DefaultServeMux)
+	http.HandleFunc("/foo", func(w http.ResponseWriter, req *http.Request) {
+		if req.Header.Get("X-Custom") == "" {
+			http.Error(w, "no custom header found", http.StatusBadRequest)
+			return
+		}
+	})
+	resp, err := Get(srv.URL+"/foo", &RequestOptions{Headers: map[string]string{"X-Custom": "1"}})
+
+	if err != nil {
+		t.Error("Redirect request failed", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	srv.Close()
+
+}
+
+func TestGetRedirectSecretHeaderNoCopy(t *testing.T) {
+	srv := httptest.NewServer(http.DefaultServeMux)
+	http.HandleFunc("/sec", func(w http.ResponseWriter, req *http.Request) {
+		if req.Header.Get("X-Custom") == "" {
+			http.Error(w, "no custom header found", http.StatusBadRequest)
+			return
+		}
+	})
+	resp, err := Get(srv.URL+"/sec", &RequestOptions{
+		Headers: map[string]string{"X-Custom": "1"}, SensitiveHTTPHeaders: map[string]struct{}{"X-Custom": {}},
+	})
+
+	if err != nil {
+		t.Error("Redirect request failed", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	srv.Close()
+
+}
+
+func TestUnlimitedRedirects(t *testing.T) {
+	srv := httptest.NewServer(http.DefaultServeMux)
+	http.HandleFunc("/bar", func(w http.ResponseWriter, req *http.Request) {
+		http.Redirect(w, req, "/bar", http.StatusMovedPermanently)
+	})
+
+	resp, err := Get(srv.URL+"/bar", &RequestOptions{Headers: map[string]string{"X-Custom": "1"}})
+
+	if err == nil {
+		t.Error("Redirect limitation failed", err)
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did not returned")
+	}
+
+	srv.Close()
+}
+
+func TestAuthStripOnRedirect(t *testing.T) {
+	srv := httptest.NewServer(http.DefaultServeMux)
+	http.HandleFunc("/test/", func(w http.ResponseWriter, req *http.Request) {
+		if req.Header.Get("Authorization") != "" {
+			http.Error(w, "Found Auth:", http.StatusInternalServerError)
+			return
+		}
+		io.WriteString(w, "OK")
+	})
+
+	resp, err := Get(srv.URL+"/test", &RequestOptions{
+		Auth:    []string{"one ", "two"},
+		Headers: map[string]string{"WWW-Authenticate": "foo"},
+	})
+
+	if err != nil {
+		t.Error("Request had creds inside", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request had creds inside", resp.StatusCode, resp.String())
+	}
+
+	srv.Close()
+}
+
+func TestNoAuthStripOnRedirect(t *testing.T) {
+	srv := httptest.NewServer(http.DefaultServeMux)
+	http.HandleFunc("/tester/", func(w http.ResponseWriter, req *http.Request) {
+		if req.Header.Get("Authorization") == "" {
+			http.Error(w, "Didn't find Auth: "+req.Header.Get("Authorization"), http.StatusInternalServerError)
+		}
+	})
+
+	resp, err := Get(srv.URL+"/tester", &RequestOptions{
+		Auth:                    []string{"one ", "two"},
+		Headers:                 map[string]string{"WWW-Authenticate": "foo"},
+		RedirectLocationTrusted: true,
+	})
+
+	if err != nil {
+		t.Error("Request didn't creds inside", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request didn't creds inside", resp.StatusCode, resp.String())
+	}
+
+	srv.Close()
 }
 
 func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {

@@ -301,7 +301,7 @@ func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 
 	resp, _ := Post("%../dir/",
 		&RequestOptions{
-			Files: []FileUpload{FileUpload{FileName: `\x00%'"üfdsufhid\Ä\"D\\\"JS%25//'"H•\\\\'"¶•ªç∂\uf8\x8AKÔÓÔ`, FileContents: nil}},
+			Files: []FileUpload{{FileName: `\x00%'"üfdsufhid\Ä\"D\\\"JS%25//'"H•\\\\'"¶•ªç∂\uf8\x8AKÔÓÔ`, FileContents: nil}},
 			Data:  map[string]string{"One": "Two"},
 		})
 
@@ -314,7 +314,7 @@ func TestSessionPostRequestUploadInvalidFileUpload(t *testing.T) {
 	session := NewSession(nil)
 	_, err := session.Post("%../dir/",
 		&RequestOptions{
-			Files: []FileUpload{FileUpload{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil}},
+			Files: []FileUpload{{FileName: "üfdsufhidÄDJSHAKÔÓÔ", FileContents: nil}},
 			Data:  map[string]string{"One": "Two"},
 		})
 
@@ -356,7 +356,7 @@ func TestBasicPostRequestUploadErrorReader(t *testing.T) {
 	rd.err = fmt.Errorf("Random Error")
 	_, err := Post("http://httpbin.org/post",
 		&RequestOptions{
-			Files: []FileUpload{FileUpload{FileName: "Random.test", FileContents: rd}},
+			Files: []FileUpload{{FileName: "Random.test", FileContents: rd}},
 			Data:  map[string]string{"One": "Two"},
 		})
 
@@ -370,7 +370,7 @@ func TestBasicPostRequestUploadErrorEOFReader(t *testing.T) {
 	rd.err = io.EOF
 	_, err := Post("http://httpbin.org/post",
 		&RequestOptions{
-			Files: []FileUpload{FileUpload{FileName: "Random.test", FileContents: rd}},
+			Files: []FileUpload{{FileName: "Random.test", FileContents: rd}},
 			Data:  map[string]string{"One": "Two"},
 		})
 
