@@ -22,17 +22,6 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-const (
-	// Default value for net.Dialer Timeout
-	dialTimeout = 30 * time.Second
-
-	// Default value for net.Dialer KeepAlive
-	dialKeepAlive = 30 * time.Second
-
-	// Default value for http.Transport TLSHandshakeTimeout
-	tslHandshakeTimeout = 10 * time.Second
-)
-
 // RequestOptions is the location that of where the data
 type RequestOptions struct {
 

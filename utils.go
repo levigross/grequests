@@ -4,10 +4,20 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"time"
 )
 
 const (
 	localUserAgent = "GRequests 0.6"
+
+	// Default value for net.Dialer Timeout
+	dialTimeout = 30 * time.Second
+
+	// Default value for net.Dialer KeepAlive
+	dialKeepAlive = 30 * time.Second
+
+	// Default value for http.Transport TLSHandshakeTimeout
+	tslHandshakeTimeout = 10 * time.Second
 )
 
 var (
