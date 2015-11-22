@@ -189,7 +189,9 @@ func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*h
 func createBasicXMLRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 	tempBuffer := &bytes.Buffer{}
 
-	if err := xml.NewEncoder(tempBuffer).Encode(ro.XML); err != nil {
+	if str, ok := ro.XML.(string); ok {
+		tempBuffer.WriteString(str)
+	} else if err := xml.NewEncoder(tempBuffer).Encode(ro.XML); err != nil {
 		return nil, err
 	}
 
