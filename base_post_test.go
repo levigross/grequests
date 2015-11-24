@@ -351,6 +351,75 @@ func TestXMLPostRequest(t *testing.T) {
 
 }
 
+func TestXMLMarshaledStringPostRequest(t *testing.T) {
+	xmlStruct := XMLPostMessage{Name: "Human", Age: 1, Height: 1}
+	encoded, _ := xml.Marshal(xmlStruct)
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{XML: string(encoded)})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicPostJSONResponse{}
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to response to JSON", err)
+	}
+
+	if myJSONStruct.Data != string(encoded) {
+		t.Error("Response is not valid", myJSONStruct.Data, string(encoded))
+	}
+}
+
+func TestXMLMarshaledBytesPostRequest(t *testing.T) {
+	xmlStruct := XMLPostMessage{Name: "Human", Age: 1, Height: 1}
+	encoded, _ := xml.Marshal(xmlStruct)
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{XML: encoded})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicPostJSONResponse{}
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to response to JSON", err)
+	}
+
+	if myJSONStruct.Data != string(encoded) {
+		t.Error("Response is not valid", myJSONStruct.Data, string(encoded))
+	}
+}
+
+func TestXMLNilPostRequest(t *testing.T) {
+	resp, _ := Post("http://httpbin.org/post", &RequestOptions{XML: nil})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicPostJSONResponse{}
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to response to JSON", err)
+	}
+
+	if myJSONStruct.Data != "" {
+		t.Error("Response is not valid", myJSONStruct.Data)
+	}
+}
+
 func TestBasicPostRequestUploadErrorReader(t *testing.T) {
 	var rd dataAndErrorBuffer
 	rd.err = fmt.Errorf("Random Error")
