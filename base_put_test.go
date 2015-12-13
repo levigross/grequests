@@ -19,7 +19,7 @@ func TestBasicPutRequest(t *testing.T) {
 }
 
 func TestBasicPutUploadRequest(t *testing.T) {
-	fd, err := FileUploadFromDisk("test_files/mypassword")
+	fd, err := FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {
 		t.Error("Unable to open file: ", err)
@@ -42,7 +42,7 @@ func TestBasicPutUploadRequest(t *testing.T) {
 }
 
 func TestBasicPutUploadRequestInvalidURL(t *testing.T) {
-	fd, err := FileUploadFromDisk("test_files/mypassword")
+	fd, err := FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {
 		t.Error("Unable to open file: ", err)
@@ -60,7 +60,7 @@ func TestBasicPutUploadRequestInvalidURL(t *testing.T) {
 }
 
 func TestSessionPutUploadRequestInvalidURL(t *testing.T) {
-	fd, err := FileUploadFromDisk("test_files/mypassword")
+	fd, err := FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {
 		t.Error("Unable to open file: ", err)

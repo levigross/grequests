@@ -256,7 +256,7 @@ func TestSessionPostJsonRequestInvalidXML(t *testing.T) {
 
 func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 
-	fd, err := FileUploadFromDisk("test_files/mypassword")
+	fd, err := FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {
 		t.Error("Unable to open file: ", err)
@@ -278,7 +278,7 @@ func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 func TestSessionPostRequestUploadInvalidURL(t *testing.T) {
 	session := NewSession(nil)
 
-	fd, err := FileUploadFromDisk("test_files/mypassword")
+	fd, err := FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {
 		t.Error("Unable to open file: ", err)
@@ -450,7 +450,7 @@ func TestBasicPostRequestUploadErrorEOFReader(t *testing.T) {
 
 func TestBasicPostRequestUpload(t *testing.T) {
 
-	fd, err := FileUploadFromDisk("test_files/mypassword")
+	fd, err := FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {
 		t.Error("Unable to open file: ", err)
@@ -508,7 +508,7 @@ func TestBasicPostRequestUpload(t *testing.T) {
 
 func TestBasicPostRequestUploadMultipleFiles(t *testing.T) {
 
-	fd, err := FileUploadFromGlob("test_files/*")
+	fd, err := FileUploadFromGlob("testdata/*")
 
 	if err != nil {
 		t.Error("Unable to glob file: ", err)

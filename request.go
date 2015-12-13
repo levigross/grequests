@@ -11,13 +11,11 @@ import (
 	"mime/multipart"
 	"net"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
-
-	"net/http/cookiejar"
-
-	"strconv"
 
 	"golang.org/x/net/publicsuffix"
 )
