@@ -567,6 +567,110 @@ func TestBasicPostRequestUploadMultipleFiles(t *testing.T) {
 
 }
 
+func TestBasicPostJsonBytesRequest(t *testing.T) {
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{JSON: []byte(`{"One":"Two"}`), IsAjax: true})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicPostJSONResponse{}
+
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to coerce to JSON", err)
+	}
+
+	if myJSONStruct.URL != "http://httpbin.org/post" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
+	}
+
+	if myJSONStruct.Headers.Host != "httpbin.org" {
+		t.Error("The host header is invalid")
+	}
+
+	if myJSONStruct.JSON.One != "Two" {
+		t.Error("Invalid post response: ", myJSONStruct.JSON.One)
+	}
+
+	if strings.TrimSpace(myJSONStruct.Data) != `{"One":"Two"}` {
+		t.Error("JSON not properly returned: ", myJSONStruct.Data)
+	}
+
+	if resp.Bytes() != nil {
+		t.Error("JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
+	}
+
+	if resp.String() != "" {
+		t.Error("JSON decoding did not fully consume the response stream (String)", resp.String())
+	}
+
+	if resp.StatusCode != 200 {
+		t.Error("Response returned a non-200 code")
+	}
+
+	if myJSONStruct.Headers.XRequestedWith != "XMLHttpRequest" {
+		t.Error("Invalid requested header: ", myJSONStruct.Headers.XRequestedWith)
+	}
+
+}
+
+func TestBasicPostJsonStringRequest(t *testing.T) {
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{JSON: `{"One":"Two"}`, IsAjax: true})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicPostJSONResponse{}
+
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to coerce to JSON", err)
+	}
+
+	if myJSONStruct.URL != "http://httpbin.org/post" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
+	}
+
+	if myJSONStruct.Headers.Host != "httpbin.org" {
+		t.Error("The host header is invalid")
+	}
+
+	if myJSONStruct.JSON.One != "Two" {
+		t.Error("Invalid post response: ", myJSONStruct.JSON.One)
+	}
+
+	if strings.TrimSpace(myJSONStruct.Data) != `{"One":"Two"}` {
+		t.Error("JSON not properly returned: ", myJSONStruct.Data)
+	}
+
+	if resp.Bytes() != nil {
+		t.Error("JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
+	}
+
+	if resp.String() != "" {
+		t.Error("JSON decoding did not fully consume the response stream (String)", resp.String())
+	}
+
+	if resp.StatusCode != 200 {
+		t.Error("Response returned a non-200 code")
+	}
+
+	if myJSONStruct.Headers.XRequestedWith != "XMLHttpRequest" {
+		t.Error("Invalid requested header: ", myJSONStruct.Headers.XRequestedWith)
+	}
+
+}
+
 func TestBasicPostJsonRequest(t *testing.T) {
 	resp, _ := Post("http://httpbin.org/post",
 		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
