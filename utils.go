@@ -13,6 +13,9 @@ const (
 	// Default value for net.Dialer Timeout
 	dialTimeout = 30 * time.Second
 
+	// Default value for request Timeout
+	requestTimeout = 90 * time.Second
+
 	// Default value for net.Dialer KeepAlive
 	dialKeepAlive = 30 * time.Second
 

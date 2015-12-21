@@ -118,6 +118,13 @@ func TestGetCustomDialTimeout(t *testing.T) {
 	}
 }
 
+func TestGetCustomRequestTimeout(t *testing.T) {
+	ro := &RequestOptions{RequestTimeout: 2 * time.Nanosecond}
+	if _, err := Get("http://httpbin.org", ro); err == nil {
+		t.Error("unexpected: successful connection")
+	}
+}
+
 func TestGetProxy(t *testing.T) {
 	ch := make(chan string, 1)
 
