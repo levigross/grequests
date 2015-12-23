@@ -372,7 +372,7 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 
 	// Using the user config for tls timeout or default
 	if ro.TLSHandshakeTimeout == 0 {
-		ro.TLSHandshakeTimeout = tslHandshakeTimeout
+		ro.TLSHandshakeTimeout = tlsHandshakeTimeout
 	}
 
 	// Using the user config for dial timeout or default
