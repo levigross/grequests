@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -77,4 +78,22 @@ func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
 
 		return nil
 	}
+}
+
+// EnsureTransporterFinalized will ensure that when the HTTP client is GCed
+// the runtime will close the idle connections (so that they won't leak)
+// this function was adopted from Hashicorp's go-cleanhttp package
+func EnsureTransporterFinalized(httpTransport *http.Transport) {
+	runtime.SetFinalizer(&httpTransport, func(transportInt **http.Transport) {
+		(*transportInt).CloseIdleConnections()
+	})
+}
+
+// EnsureResponseFinalized will ensure that when the Response is GCed
+// the request body is closed so we aren't leaking fds
+func EnsureResponseFinalized(httpResp *Response) {
+	runtime.SetFinalizer(&httpResp, func(httpResponseInt **Response) {
+		(*httpResponseInt).RawResponse.Body.Close()
+		(*httpResponseInt).ClearInternalBuffer()
+	})
 }
