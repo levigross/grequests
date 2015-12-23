@@ -20,7 +20,7 @@ const (
 	dialKeepAlive = 30 * time.Second
 
 	// Default value for http.Transport TLSHandshakeTimeout
-	tslHandshakeTimeout = 10 * time.Second
+	tlsHandshakeTimeout = 10 * time.Second
 )
 
 var (
