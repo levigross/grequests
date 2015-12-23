@@ -91,6 +91,5 @@ func EnsureTransporterFinalized(httpTransport *http.Transport) {
 func EnsureResponseFinalized(httpResp *Response) {
 	runtime.SetFinalizer(&httpResp, func(httpResponseInt **Response) {
 		(*httpResponseInt).RawResponse.Body.Close()
-		(*httpResponseInt).ClearInternalBuffer()
 	})
 }
