@@ -349,6 +349,7 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 // 4. Do we want to change the default timeout for TLS Handshake?
 // 5. Do we want to change the default request timeout?
 // 6. Do we want to change the default connection timeout?
+// 7. Do you want to use the http.Client's cookieJar?
 func (ro RequestOptions) dontUseDefaultClient() bool {
 	return ro.InsecureSkipVerify == true ||
 		ro.DisableCompression == true ||
