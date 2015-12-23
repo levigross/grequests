@@ -37,7 +37,7 @@ func buildResponse(resp *http.Response, err error) (*Response, error) {
 		return &Response{Error: err}, err
 	}
 
-	return &Response{
+	goodResp := &Response{
 		// If your code is within the 2xx range – the response is considered `Ok`
 		Ok:                 resp.StatusCode >= 200 && resp.StatusCode < 300,
 		Error:              nil,
@@ -45,7 +45,9 @@ func buildResponse(resp *http.Response, err error) (*Response, error) {
 		StatusCode:         resp.StatusCode,
 		Header:             resp.Header,
 		internalByteBuffer: bytes.NewBuffer([]byte{}),
-	}, nil
+	}
+	EnsureResponseFinalized(goodResp)
+	return goodResp, nil
 }
 
 // Read is part of our ability to support io.ReadCloser if someone wants to make use of the raw body
@@ -165,6 +167,7 @@ func (r *Response) populateResponseByteBuffer() {
 
 	if _, err := io.Copy(r.internalByteBuffer, r); err != nil && err != io.EOF {
 		r.Error = err
+		r.RawResponse.Body.Close()
 	}
 
 }

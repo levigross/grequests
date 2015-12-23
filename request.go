@@ -389,21 +389,27 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 	cookieJar, _ := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 
 	return &http.Client{
-		Jar: cookieJar,
-		Transport: &http.Transport{
-			// These are borrowed from the default transporter
-			Proxy: ro.proxySettings,
-			Dial: (&net.Dialer{
-				Timeout:   ro.DialTimeout,
-				KeepAlive: ro.DialKeepAlive,
-			}).Dial,
-			TLSHandshakeTimeout: ro.TLSHandshakeTimeout,
-
-			// Here comes the user settings
-			TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
-			DisableCompression: ro.DisableCompression,
-		},
+		Jar:       cookieJar,
+		Transport: createHTTPTransport(ro),
 	}
+}
+
+func createHTTPTransport(ro RequestOptions) *http.Transport {
+	ourHTTPTransport := &http.Transport{
+		// These are borrowed from the default transporter
+		Proxy: ro.proxySettings,
+		Dial: (&net.Dialer{
+			Timeout:   ro.DialTimeout,
+			KeepAlive: ro.DialKeepAlive,
+		}).Dial,
+		TLSHandshakeTimeout: ro.TLSHandshakeTimeout,
+
+		// Here comes the user settings
+		TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
+		DisableCompression: ro.DisableCompression,
+	}
+	EnsureTransporterFinalized(ourHTTPTransport)
+	return ourHTTPTransport
 }
 
 // buildURLParams returns a URL with all of the params
