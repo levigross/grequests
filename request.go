@@ -385,8 +385,12 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 		ro.DialKeepAlive = dialKeepAlive
 	}
 
-	// The function does not return an error ever... so we are just ignoring it
-	cookieJar, _ := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	var cookieJar http.CookieJar
+
+	if ro.UseCookieJar {
+		// The function does not return an error ever... so we are just ignoring it
+		cookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	}
 
 	return &http.Client{
 		Jar:       cookieJar,

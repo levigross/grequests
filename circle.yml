@@ -5,7 +5,7 @@ dependencies:
       - go get github.com/golang/lint
 test:
   override:
-      - diff -u <(echo -n) <(gofmt -d ./)
+      - diff -u <(echo -n) <(gofmt -s -d ./)
       - diff -u <(echo -n) <(go vet ./...)
       - diff -u <(echo -n) <(golint ./...)
       - go test -v -race ./...
