@@ -85,6 +85,10 @@ type RequestOptions struct {
 	// a connect to complete.
 	DialTimeout time.Duration
 
+	// RequestTimeout is the maximum amount of time a whole request(include dial / request / redirect)
+	// will wait.(Go 1.3)
+	RequestTimeout time.Duration
+
 	// KeepAlive specifies the keep-alive period for an active
 	// network connection. If zero, keep-alive are not enabled.
 	DialKeepAlive time.Duration
@@ -352,6 +356,7 @@ func (ro RequestOptions) dontUseDefaultClient() bool {
 		len(ro.Proxies) != 0 ||
 		ro.TLSHandshakeTimeout != 0 ||
 		ro.DialTimeout != 0 ||
+		ro.RequestTimeout != 0 ||
 		ro.DialKeepAlive != 0 ||
 		len(ro.Cookies) != 0 ||
 		ro.UseCookieJar != false
@@ -378,6 +383,10 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 	// Using the user config for dial timeout or default
 	if ro.DialTimeout == 0 {
 		ro.DialTimeout = dialTimeout
+	}
+
+	if ro.RequestTimeout == 0 {
+		ro.RequestTimeout = requestTimeout
 	}
 
 	// Using the user config for dial keep alive or default
