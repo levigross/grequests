@@ -89,6 +89,10 @@ type RequestOptions struct {
 	// network connection. If zero, keep-alive are not enabled.
 	DialKeepAlive time.Duration
 
+	// RequestTimeout is the maximum amount of time a whole request(include dial / request / redirect)
+	// will wait.
+	RequestTimeout time.Duration
+
 	// HTTPClient can be provided if you wish to supply a custom HTTP client
 	// this is useful if you want to use an OAUTH client with your request.
 	HTTPClient *http.Client
@@ -354,7 +358,8 @@ func (ro RequestOptions) dontUseDefaultClient() bool {
 		ro.DialTimeout != 0 ||
 		ro.DialKeepAlive != 0 ||
 		len(ro.Cookies) != 0 ||
-		ro.UseCookieJar != false
+		ro.UseCookieJar != false ||
+		ro.RequestTimeout != 0
 }
 
 // BuildHTTPClient is a function that will return a custom HTTP client based on the request options provided
@@ -385,6 +390,10 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 		ro.DialKeepAlive = dialKeepAlive
 	}
 
+	if ro.RequestTimeout == 0 {
+		ro.RequestTimeout = requestTimeout
+	}
+
 	var cookieJar http.CookieJar
 
 	if ro.UseCookieJar {
@@ -395,6 +404,7 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 	return &http.Client{
 		Jar:       cookieJar,
 		Transport: createHTTPTransport(ro),
+		Timeout:   ro.RequestTimeout,
 	}
 }
 

@@ -933,6 +933,13 @@ func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 	return myJSONStruct
 }
 
+func TestGetCustomRequestTimeout(t *testing.T) {
+	ro := &RequestOptions{RequestTimeout: 2 * time.Nanosecond}
+	if _, err := Get("http://httpbin.org", ro); err == nil {
+		t.Error("unexpected: successful connection")
+	}
+}
+
 // verifyResponse will verify the following conditions
 // 1. The request didn't return an error
 // 2. The response returned an OK (a status code within the 200 range)
