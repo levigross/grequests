@@ -17,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/go-querystring/query"
+
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -29,6 +31,11 @@ type RequestOptions struct {
 
 	// Params is a map of query strings that may be used within a GET request
 	Params map[string]string
+
+	// QueryStruct is a struct that encapsulates a set of URL query params
+	// this paramter is mutually exclusive with `Params map[string]string` (they cannot be combined)
+	// for more information please see https://godoc.org/github.com/google/go-querystring/query
+	QueryStruct interface{}
 
 	// Files is where you can include files to upload. The use of this data
 	// structure is limited to POST requests
@@ -131,11 +138,14 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 		httpClient = BuildHTTPClient(*ro)
 	}
 
-	// Build our URL
-	var err error
-
-	if len(ro.Params) != 0 {
+	var err error // we don't want to shadow url so we won't use :=
+	switch {
+	case len(ro.Params) != 0:
 		if url, err = buildURLParams(url, ro.Params); err != nil {
+			return nil, err
+		}
+	case ro.QueryStruct != nil:
+		if url, err = buildURLStruct(url, ro.QueryStruct); err != nil {
 			return nil, err
 		}
 	}
@@ -438,15 +448,15 @@ func buildURLParams(userURL string, params map[string]string) (string, error) {
 
 	parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
 
+	if err != nil {
+		return "", nil
+	}
+
 	for key, value := range params {
 		parsedQuery.Set(key, value)
 	}
 
-	return strings.Join(
-		[]string{strings.Replace(parsedURL.String(),
-			"?"+parsedURL.RawQuery, "", -1),
-			parsedQuery.Encode()},
-		"?"), nil
+	return addQueryParams(parsedURL, parsedQuery), nil
 }
 
 // addHTTPHeaders adds any additional HTTP headers that need to be added are added here including:
@@ -477,4 +487,35 @@ func addCookies(ro *RequestOptions, req *http.Request) {
 	for _, c := range ro.Cookies {
 		req.AddCookie(&c)
 	}
+}
+
+func addQueryParams(parsedURL *url.URL, parsedQuery url.Values) string {
+	return strings.Join([]string{strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1), parsedQuery.Encode()}, "?")
+}
+
+func buildURLStruct(userURL string, URLStruct interface{}) (string, error) {
+	parsedURL, err := url.Parse(userURL)
+
+	if err != nil {
+		return "", err
+	}
+
+	parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
+
+	if err != nil {
+		return "", err
+	}
+
+	queryStruct, err := query.Values(URLStruct)
+	if err != nil {
+		return "", err
+	}
+
+	for key, value := range queryStruct {
+		for _, v := range value {
+			parsedQuery.Add(key, v)
+		}
+	}
+
+	return addQueryParams(parsedURL, parsedQuery), nil
 }

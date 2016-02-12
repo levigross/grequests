@@ -578,6 +578,84 @@ func TestGetBasicArgs(t *testing.T) {
 
 }
 
+func TestGetBasicArgsQueryStruct(t *testing.T) {
+	ro := &RequestOptions{
+		QueryStruct: struct {
+			Hello string `url:"Hello"`
+		}{
+			"World",
+		},
+	}
+	resp, _ := Get("http://httpbin.org/get?Goodbye=World", ro)
+
+	verifyOkArgsResponse(resp, t)
+
+}
+
+func TestGetBasicArgsQueryStructErr(t *testing.T) {
+	ro := &RequestOptions{
+		QueryStruct: 5,
+	}
+	resp, err := Get("http://httpbin.org/get?Goodbye=World", ro)
+
+	if err == nil {
+		t.Error("URL Parsing should have failed")
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did return OK")
+	}
+
+}
+
+func TestGetBasicArgsQueryStructUrlQueryErr(t *testing.T) {
+	ro := &RequestOptions{
+		QueryStruct: 5,
+	}
+	resp, err := Get("http://httpbin.org/get?Goodbye=World%zz", ro)
+
+	if err == nil {
+		t.Error("URL Parsing should have failed")
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did return OK")
+	}
+
+}
+
+func TestGetBasicArgsQueryStructUrlErr(t *testing.T) {
+	ro := &RequestOptions{
+		QueryStruct: 5,
+	}
+	resp, err := Get("%", ro)
+
+	if err == nil {
+		t.Error("URL Parsing should have failed")
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did return OK")
+	}
+
+}
+
+func TestGetBasicArgsErr(t *testing.T) {
+	ro := &RequestOptions{
+		Params: map[string]string{"Hello": "World"},
+	}
+	resp, err := Get("http://httpbin.org/get?Goodbye=%zzz", ro)
+
+	if err == nil {
+		t.Error("URL Parsing should have failed")
+	}
+
+	if resp.Ok == true {
+		t.Error("Request did return OK")
+	}
+
+}
+
 func TestGetBasicArgsParams(t *testing.T) {
 	ro := &RequestOptions{
 		Params: map[string]string{"Hello": "World", "Goodbye": "World"},
