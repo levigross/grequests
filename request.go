@@ -286,19 +286,21 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 
 func createBasicJSONRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
 
-	tempBuffer := &bytes.Buffer{}
+	var reader io.Reader
 	switch ro.JSON.(type) {
 	case string:
-		tempBuffer.WriteString(ro.JSON.(string))
+		reader = strings.NewReader(ro.JSON.(string))
 	case []byte:
-		tempBuffer.Write(ro.JSON.([]byte))
+		reader = bytes.NewReader(ro.JSON.([]byte))
 	default:
-		if err := json.NewEncoder(tempBuffer).Encode(ro.JSON); err != nil {
+		byteSlice, err := json.Marshal(ro.JSON)
+		if err != nil {
 			return nil, err
 		}
+		reader = bytes.NewReader(byteSlice)
 	}
 
-	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
+	req, err := http.NewRequest(httpMethod, userURL, reader)
 	if err != nil {
 		return nil, err
 	}
