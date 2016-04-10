@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 )
@@ -66,6 +67,8 @@ func (r *Response) Close() error {
 	if r.Error != nil {
 		return r.Error
 	}
+
+	io.Copy(ioutil.Discard, r)
 
 	return r.RawResponse.Body.Close()
 }
