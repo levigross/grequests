@@ -63,7 +63,7 @@ func Example_proxy() {
 func Example_cookies() {
 	resp, err := grequests.Get("http://httpbin.org/cookies",
 		&grequests.RequestOptions{
-			Cookies: []http.Cookie{
+			Cookies: []*http.Cookie{
 				{
 					Name:     "TestCookie",
 					Value:    "Random Value",

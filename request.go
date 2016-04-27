@@ -74,7 +74,7 @@ type RequestOptions struct {
 
 	// Cookies is an array of `http.Cookie` that allows you to attach
 	// cookies to your request
-	Cookies []http.Cookie
+	Cookies []*http.Cookie
 
 	// UseCookieJar will create a custom HTTP client that will
 	// process and store HTTP cookies when they are sent down
@@ -487,7 +487,7 @@ func addHTTPHeaders(ro *RequestOptions, req *http.Request) {
 
 func addCookies(ro *RequestOptions, req *http.Request) {
 	for _, c := range ro.Cookies {
-		req.AddCookie(&c)
+		req.AddCookie(c)
 	}
 }
 

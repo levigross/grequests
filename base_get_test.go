@@ -183,7 +183,7 @@ func TestGetNoOptionsGzip(t *testing.T) {
 func TestGetWithCookies(t *testing.T) {
 	resp, err := Get("http://httpbin.org/cookies",
 		&RequestOptions{
-			Cookies: []http.Cookie{
+			Cookies: []*http.Cookie{
 				{
 					Name:     "TestCookie",
 					Value:    "Random Value",
