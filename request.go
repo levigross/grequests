@@ -210,20 +210,22 @@ func createFileUploadRequest(httpMethod, userURL string, ro *RequestOptions) (*h
 }
 
 func createBasicXMLRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
-	tempBuffer := &bytes.Buffer{}
+	var reader io.Reader
 
 	switch ro.XML.(type) {
 	case string:
-		tempBuffer.WriteString(ro.XML.(string))
+		reader = strings.NewReader(ro.XML.(string))
 	case []byte:
-		tempBuffer.Write(ro.XML.([]byte))
+		reader = bytes.NewReader(ro.XML.([]byte))
 	default:
-		if err := xml.NewEncoder(tempBuffer).Encode(ro.XML); err != nil {
+		byteSlice, err := xml.Marshal(ro.XML)
+		if err != nil {
 			return nil, err
 		}
+		reader = bytes.NewReader(byteSlice)
 	}
 
-	req, err := http.NewRequest(httpMethod, userURL, tempBuffer)
+	req, err := http.NewRequest(httpMethod, userURL, reader)
 	if err != nil {
 		return nil, err
 	}
