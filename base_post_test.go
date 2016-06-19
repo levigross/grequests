@@ -351,6 +351,40 @@ func TestXMLPostRequest(t *testing.T) {
 
 }
 
+func TestXMLPostRequestReaderBody(t *testing.T) {
+	msg := XMLPostMessage{Name: "Human", Age: 1, Height: 1}
+	derBytes, err := xml.Marshal(msg)
+	if err != nil {
+		t.Fatal("Unable to marshal XML", err)
+	}
+
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{RequestBody: bytes.NewReader(derBytes)})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicPostJSONResponse{}
+
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to coerce to JSON", err)
+	}
+
+	myXMLStruct := &XMLPostMessage{}
+
+	xml.Unmarshal([]byte(myJSONStruct.Data), myXMLStruct)
+
+	if myXMLStruct.Age != 1 {
+		t.Errorf("Unable to serialize XML response from within JSON %#v ", myXMLStruct)
+	}
+
+}
+
 func TestXMLMarshaledStringPostRequest(t *testing.T) {
 	xmlStruct := XMLPostMessage{Name: "Human", Age: 1, Height: 1}
 	encoded, _ := xml.Marshal(xmlStruct)
