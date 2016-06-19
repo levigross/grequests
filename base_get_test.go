@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -222,6 +223,50 @@ func TestGetWithCookies(t *testing.T) {
 
 }
 
+func TestGetWithCookiesCustomCookieJar(t *testing.T) {
+	cookieJar, _ := cookiejar.New(nil)
+	resp, err := Get("http://httpbin.org/cookies",
+		&RequestOptions{
+			CookieJar: cookieJar,
+			Cookies: []*http.Cookie{
+				{
+					Name:     "TestCookie",
+					Value:    "Random Value",
+					HttpOnly: true,
+					Secure:   false,
+				}, {
+					Name:     "AnotherCookie",
+					Value:    "Some Value",
+					HttpOnly: true,
+					Secure:   false,
+				},
+			},
+		})
+
+	if err != nil {
+		t.Error("Unable to make request", err)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &TestJSONCookies{}
+
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Cannot serialize cookie JSON: ", err)
+	}
+
+	if myJSONStruct.Cookies.TestCookie != "Random Value" {
+		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+	}
+
+	if myJSONStruct.Cookies.AnotherCookie != "Some Value" {
+		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+	}
+
+}
+
 func TestGetSession(t *testing.T) {
 	session := NewSession(nil)
 
@@ -296,11 +341,13 @@ func xmlASCIIDecoder(charset string, input io.Reader) (io.Reader, error) {
 }
 
 func TestGetInvalidURL(t *testing.T) {
-	_, err := Get("%../dir/", &RequestOptions{Params: map[string]string{"1": "2"}})
+	resp, err := Get("%../dir/", &RequestOptions{Params: map[string]string{"1": "2"}})
 
 	if err == nil {
 		t.Error("Some how the request was valid to make request", err)
 	}
+
+	resp.ClearInternalBuffer() // This will panic without our nil checks
 }
 
 func TestGetInvalidURLNoParams(t *testing.T) {

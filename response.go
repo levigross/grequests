@@ -207,8 +207,8 @@ func (r *Response) String() string {
 // data. Once you have used these functions – you may want to free up the memory.
 func (r *Response) ClearInternalBuffer() {
 
-	if r.Error != nil {
-		return // This is a noop as we will be dereferencing a null pointer
+	if r == nil || r.internalByteBuffer == nil {
+		return
 	}
 
 	r.internalByteBuffer.Reset()

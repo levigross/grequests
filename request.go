@@ -117,6 +117,14 @@ type RequestOptions struct {
 	// before returning an error be default this is set to 30. You can change this
 	// globally by modifying the `RedirectLimit` variable.
 	RedirectLimit int
+
+	// RequestBody allows you to put anything matching an `io.Reader` into the request
+	// this option will take precedence over any other request option specified
+	RequestBody io.Reader
+
+	// CookieJar allows you to specify a special cookiejar to use with your request.
+	// this option will take precedence over the `UseCookieJar` option above.
+	CookieJar http.CookieJar
 }
 
 func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
@@ -132,6 +140,11 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 	if ro == nil {
 		ro = &RequestOptions{}
 	}
+
+	if ro.CookieJar != nil {
+		ro.UseCookieJar = true
+	}
+
 	// Create our own HTTP client
 
 	if httpClient == nil {
@@ -166,6 +179,10 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 }
 
 func buildHTTPRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {
+	if ro.RequestBody != nil {
+		return http.NewRequest(httpMethod, userURL, ro.RequestBody)
+	}
+
 	if ro.JSON != nil {
 		return createBasicJSONRequest(httpMethod, userURL, ro)
 	}
@@ -411,6 +428,9 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 	var cookieJar http.CookieJar
 
 	if ro.UseCookieJar {
+		if ro.CookieJar != nil {
+			cookieJar = ro.CookieJar
+		}
 		// The function does not return an error ever... so we are just ignoring it
 		cookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	}
