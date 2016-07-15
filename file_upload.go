@@ -15,6 +15,9 @@ type FileUpload struct {
 
 	// FileContents is happy as long as you pass it a io.ReadCloser (which most file use anyways)
 	FileContents io.ReadCloser
+
+	// FieldName is form field name
+	FieldName string
 }
 
 // FileUploadFromDisk allows you to create a FileUpload struct slice by just specifying a location on the disk
@@ -26,6 +29,17 @@ func FileUploadFromDisk(fileName string) ([]FileUpload, error) {
 	}
 
 	return []FileUpload{{FileContents: fd, FileName: fileName}}, nil
+
+}
+
+func FileUploadFromDiskWithFieldName(fieldName, fileName string) ([]FileUpload, error) {
+	fd, err := os.Open(fileName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return []FileUpload{{FileContents: fd, FileName: fileName, FieldName: fieldName}}, nil
 
 }
 
