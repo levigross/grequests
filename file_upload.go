@@ -15,6 +15,9 @@ type FileUpload struct {
 
 	// FileContents is happy as long as you pass it a io.ReadCloser (which most file use anyways)
 	FileContents io.ReadCloser
+
+	// FieldName is form field name
+	FieldName string
 }
 
 // FileUploadFromDisk allows you to create a FileUpload struct slice by just specifying a location on the disk
