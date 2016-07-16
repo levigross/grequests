@@ -32,7 +32,7 @@ func FileUploadFromDisk(fileName string) ([]FileUpload, error) {
 
 }
 
-// FileUploadFromDiskWithFieldName, same as FileUploadFromDisk but with specified fieldName
+// FileUploadFromDiskWithFieldName same as FileUploadFromDisk but with specified fieldName
 func FileUploadFromDiskWithFieldName(fieldName, fileName string) ([]FileUpload, error) {
 	fd, err := os.Open(fileName)
 
