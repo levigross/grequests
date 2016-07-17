@@ -382,15 +382,20 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 // 6. Do we want to change the default connection timeout?
 // 7. Do you want to use the http.Client's cookieJar?
 func (ro RequestOptions) dontUseDefaultClient() bool {
-	return ro.InsecureSkipVerify == true ||
-		ro.DisableCompression == true ||
-		len(ro.Proxies) != 0 ||
-		ro.TLSHandshakeTimeout != 0 ||
-		ro.DialTimeout != 0 ||
-		ro.DialKeepAlive != 0 ||
-		len(ro.Cookies) != 0 ||
-		ro.UseCookieJar != false ||
-		ro.RequestTimeout != 0
+	switch {
+	case ro.InsecureSkipVerify == true:
+	case ro.DisableCompression == true:
+	case len(ro.Proxies) != 0:
+	case ro.TLSHandshakeTimeout != 0:
+	case ro.DialTimeout != 0:
+	case ro.DialKeepAlive != 0:
+	case len(ro.Cookies) != 0:
+	case ro.UseCookieJar != false:
+	case ro.RequestTimeout != 0:
+	default:
+		return false
+	}
+	return true
 }
 
 // BuildHTTPClient is a function that will return a custom HTTP client based on the request options provided
