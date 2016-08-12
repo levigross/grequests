@@ -435,9 +435,10 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 	if ro.UseCookieJar {
 		if ro.CookieJar != nil {
 			cookieJar = ro.CookieJar
+		} else {
+			// The function does not return an error ever... so we are just ignoring it
+			cookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 		}
-		// The function does not return an error ever... so we are just ignoring it
-		cookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	}
 
 	return &http.Client{
