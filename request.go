@@ -263,13 +263,17 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 			return nil, errors.New("grequests: Pointer FileContents cannot be nil")
 		}
 
-		fileName := "file"
+		fieldName := f.FieldName
 
-		if len(ro.Files) > 1 {
-			fileName = strings.Join([]string{"file", strconv.Itoa(i + 1)}, "")
+		if fieldName == "" {
+			if len(ro.Files) > 1 {
+				fieldName = strings.Join([]string{"file", strconv.Itoa(i + 1)}, "")
+			} else {
+				fieldName = "file"
+			}
 		}
 
-		writer, err := multipartWriter.CreateFormFile(fileName, f.FileName)
+		writer, err := multipartWriter.CreateFormFile(fieldName, f.FileName)
 
 		if err != nil {
 			return nil, err
