@@ -91,8 +91,9 @@ func EnsureTransporterFinalized(httpTransport *http.Transport) {
 
 // EnsureResponseFinalized will ensure that when the Response is GCed
 // the request body is closed so we aren't leaking fds
-func EnsureResponseFinalized(httpResp *Response) {
-	runtime.SetFinalizer(&httpResp, func(httpResponseInt **Response) {
-		(*httpResponseInt).RawResponse.Body.Close()
-	})
-}
+// func EnsureResponseFinalized(httpResp *Response) {
+// 	runtime.SetFinalizer(&httpResp, func(httpResponseInt **Response) {
+// 		(*httpResponseInt).RawResponse.Body.Close()
+// 	})
+// }
+// This will come back in 1.0

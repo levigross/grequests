@@ -47,7 +47,7 @@ func buildResponse(resp *http.Response, err error) (*Response, error) {
 		Header:             resp.Header,
 		internalByteBuffer: bytes.NewBuffer([]byte{}),
 	}
-	EnsureResponseFinalized(goodResp)
+	// EnsureResponseFinalized(goodResp) This will come back in 1.0
 	return goodResp, nil
 }
 

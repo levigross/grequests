@@ -8,6 +8,7 @@ go:
 #   - 1.4 This won't work with golint
   - 1.5
   - 1.6
+  - 1.7
   - tip
 
 before_install:
