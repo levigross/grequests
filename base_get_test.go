@@ -1131,15 +1131,26 @@ func TestAuthStripOnRedirect(t *testing.T) {
 	srv := httptest.NewServer(http.DefaultServeMux)
 	http.HandleFunc("/test/", func(w http.ResponseWriter, req *http.Request) {
 		if req.Header.Get("Authorization") != "" {
-			http.Error(w, "Found Auth:", http.StatusInternalServerError)
+			http.Error(w, "Found Auth: "+req.Header.Get("Authorization"), http.StatusInternalServerError)
 			return
 		}
+
+		if req.Header.Get("WWW-Authenticate") != "" {
+			http.Error(w, "Found Auth: "+req.Header.Get("WWW-Authenticate"), http.StatusInternalServerError)
+			return
+		}
+
+		if req.Header.Get("Proxy-Authorization") != "" {
+			http.Error(w, "Found Auth: "+req.Header.Get("Proxy-Authorization"), http.StatusInternalServerError)
+			return
+		}
+
 		io.WriteString(w, "OK")
 	})
 
 	resp, err := Get(srv.URL+"/test", &RequestOptions{
 		Auth:    []string{"one ", "two"},
-		Headers: map[string]string{"WWW-Authenticate": "foo"},
+		Headers: map[string]string{"WWW-Authenticate": "foo", "Proxy-Authorization": "bar"},
 	})
 
 	if err != nil {

@@ -40,7 +40,7 @@ var (
 	// wish to set this on a request by request basis, set it within the
 	// `RequestOptions` structure
 	SensitiveHTTPHeaders = map[string]struct{}{
-		"WWW-Authenticate":    {},
+		"Www-Authenticate":    {},
 		"Authorization":       {},
 		"Proxy-Authorization": {},
 	}
@@ -67,7 +67,7 @@ func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
 
 		for k, vv := range via[0].Header {
 			// Is this a sensitive header?
-			if _, found := ro.SensitiveHTTPHeaders[k]; found && !ro.RedirectLocationTrusted {
+			if _, found := ro.SensitiveHTTPHeaders[k]; found && ro.RedirectLocationTrusted == false {
 				continue
 			}
 
