@@ -94,6 +94,131 @@ type TestJSONCookies struct {
 	} `json:"cookies"`
 }
 
+type MassiveJSONBlob struct {
+	Type     string `json:"type"`
+	Features []struct {
+		Type       string `json:"type"`
+		Properties struct {
+			MAPBLKLOT string      `json:"MAPBLKLOT"`
+			BLKLOT    string      `json:"BLKLOT"`
+			BLOCKNUM  string      `json:"BLOCK_NUM"`
+			LOTNUM    string      `json:"LOT_NUM"`
+			FROMST    string      `json:"FROM_ST"`
+			TOST      string      `json:"TO_ST"`
+			STREET    string      `json:"STREET"`
+			STTYPE    interface{} `json:"ST_TYPE"`
+			ODDEVEN   string      `json:"ODD_EVEN"`
+		} `json:"properties"`
+		Geometry struct {
+			Type        string `json:"type"`
+			Coordinates []struct {
+				Num0  []float64 `json:"0,omitempty"`
+				Num1  []float64 `json:"1,omitempty"`
+				Num2  []float64 `json:"2,omitempty"`
+				Num3  []float64 `json:"3,omitempty"`
+				Num4  []float64 `json:"4,omitempty"`
+				Num5  []float64 `json:"5,omitempty"`
+				Num6  []float64 `json:"6,omitempty"`
+				Num7  []float64 `json:"7,omitempty"`
+				Num8  []float64 `json:"8,omitempty"`
+				Num9  []float64 `json:"9,omitempty"`
+				Num10 []float64 `json:"10,omitempty"`
+			} `json:"-"`
+		} `json:"geometry"`
+	} `json:"features"`
+}
+
+type GithubSelfJSON struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	FullName string `json:"full_name"`
+	Owner    struct {
+		Login             string `json:"login"`
+		ID                int    `json:"id"`
+		AvatarURL         string `json:"avatar_url"`
+		GravatarID        string `json:"gravatar_id"`
+		URL               string `json:"url"`
+		HTMLURL           string `json:"html_url"`
+		FollowersURL      string `json:"followers_url"`
+		FollowingURL      string `json:"following_url"`
+		GistsURL          string `json:"gists_url"`
+		StarredURL        string `json:"starred_url"`
+		SubscriptionsURL  string `json:"subscriptions_url"`
+		OrganizationsURL  string `json:"organizations_url"`
+		ReposURL          string `json:"repos_url"`
+		EventsURL         string `json:"events_url"`
+		ReceivedEventsURL string `json:"received_events_url"`
+		Type              string `json:"type"`
+		SiteAdmin         bool   `json:"site_admin"`
+	} `json:"owner"`
+	Private          bool        `json:"private"`
+	HTMLURL          string      `json:"html_url"`
+	Description      string      `json:"description"`
+	Fork             bool        `json:"fork"`
+	URL              string      `json:"url"`
+	ForksURL         string      `json:"forks_url"`
+	KeysURL          string      `json:"keys_url"`
+	CollaboratorsURL string      `json:"collaborators_url"`
+	TeamsURL         string      `json:"teams_url"`
+	HooksURL         string      `json:"hooks_url"`
+	IssueEventsURL   string      `json:"issue_events_url"`
+	EventsURL        string      `json:"events_url"`
+	AssigneesURL     string      `json:"assignees_url"`
+	BranchesURL      string      `json:"branches_url"`
+	TagsURL          string      `json:"tags_url"`
+	BlobsURL         string      `json:"blobs_url"`
+	GitTagsURL       string      `json:"git_tags_url"`
+	GitRefsURL       string      `json:"git_refs_url"`
+	TreesURL         string      `json:"trees_url"`
+	StatusesURL      string      `json:"statuses_url"`
+	LanguagesURL     string      `json:"languages_url"`
+	StargazersURL    string      `json:"stargazers_url"`
+	ContributorsURL  string      `json:"contributors_url"`
+	SubscribersURL   string      `json:"subscribers_url"`
+	SubscriptionURL  string      `json:"subscription_url"`
+	CommitsURL       string      `json:"commits_url"`
+	GitCommitsURL    string      `json:"git_commits_url"`
+	CommentsURL      string      `json:"comments_url"`
+	IssueCommentURL  string      `json:"issue_comment_url"`
+	ContentsURL      string      `json:"contents_url"`
+	CompareURL       string      `json:"compare_url"`
+	MergesURL        string      `json:"merges_url"`
+	ArchiveURL       string      `json:"archive_url"`
+	DownloadsURL     string      `json:"downloads_url"`
+	IssuesURL        string      `json:"issues_url"`
+	PullsURL         string      `json:"pulls_url"`
+	MilestonesURL    string      `json:"milestones_url"`
+	NotificationsURL string      `json:"notifications_url"`
+	LabelsURL        string      `json:"labels_url"`
+	ReleasesURL      string      `json:"releases_url"`
+	DeploymentsURL   string      `json:"deployments_url"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
+	PushedAt         time.Time   `json:"pushed_at"`
+	GitURL           string      `json:"git_url"`
+	SSHURL           string      `json:"ssh_url"`
+	CloneURL         string      `json:"clone_url"`
+	SvnURL           string      `json:"svn_url"`
+	Homepage         string      `json:"homepage"`
+	Size             int         `json:"size"`
+	StargazersCount  int         `json:"stargazers_count"`
+	WatchersCount    int         `json:"watchers_count"`
+	Language         string      `json:"language"`
+	HasIssues        bool        `json:"has_issues"`
+	HasDownloads     bool        `json:"has_downloads"`
+	HasWiki          bool        `json:"has_wiki"`
+	HasPages         bool        `json:"has_pages"`
+	ForksCount       int         `json:"forks_count"`
+	MirrorURL        interface{} `json:"mirror_url"`
+	OpenIssuesCount  int         `json:"open_issues_count"`
+	Forks            int         `json:"forks"`
+	OpenIssues       int         `json:"open_issues"`
+	Watchers         int         `json:"watchers"`
+	DefaultBranch    string      `json:"default_branch"`
+	NetworkCount     int         `json:"network_count"`
+	SubscribersCount int         `json:"subscribers_count"`
+}
+
 func TestGetNoOptions(t *testing.T) {
 	resp, _ := Get("http://httpbin.org/get", nil)
 	verifyOkResponse(resp, t)
@@ -950,6 +1075,39 @@ func TestGetRedirectSecretHeaderNoCopy(t *testing.T) {
 
 }
 
+func TestMassiveJSONFile(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping massive JSON file download because short was called")
+	}
+	resp, err := Get("https://raw.githubusercontent.com/levigross/sf-city-lots-json/master/citylots.json", nil)
+	if err != nil {
+		t.Error("Request to massive JSON blob failed", err)
+	}
+
+	myjson := &MassiveJSONBlob{}
+
+	if err := resp.JSON(myjson); err != nil {
+		t.Error("Unable to serialize massive JSON blob", err)
+	}
+
+	if myjson.Type != "FeatureCollection" {
+		t.Error("JSON did not properly serialize")
+	}
+}
+
+func TestGitHubSelfJSON(t *testing.T) {
+	resp, err := Get("https://api.github.com/repos/levigross/grequests", nil)
+	if err != nil {
+		t.Error("Request to reddit JSON blob failed", err)
+	}
+
+	myjson := &GithubSelfJSON{}
+
+	if err := resp.JSON(myjson); err != nil {
+		t.Error("Unable to serialize reddit JSON blob", err)
+	}
+}
+
 func TestUnlimitedRedirects(t *testing.T) {
 	srv := httptest.NewServer(http.DefaultServeMux)
 	http.HandleFunc("/bar", func(w http.ResponseWriter, req *http.Request) {
@@ -973,15 +1131,26 @@ func TestAuthStripOnRedirect(t *testing.T) {
 	srv := httptest.NewServer(http.DefaultServeMux)
 	http.HandleFunc("/test/", func(w http.ResponseWriter, req *http.Request) {
 		if req.Header.Get("Authorization") != "" {
-			http.Error(w, "Found Auth:", http.StatusInternalServerError)
+			http.Error(w, "Found Auth: "+req.Header.Get("Authorization"), http.StatusInternalServerError)
 			return
 		}
+
+		if req.Header.Get("WWW-Authenticate") != "" {
+			http.Error(w, "Found Auth: "+req.Header.Get("WWW-Authenticate"), http.StatusInternalServerError)
+			return
+		}
+
+		if req.Header.Get("Proxy-Authorization") != "" {
+			http.Error(w, "Found Auth: "+req.Header.Get("Proxy-Authorization"), http.StatusInternalServerError)
+			return
+		}
+
 		io.WriteString(w, "OK")
 	})
 
 	resp, err := Get(srv.URL+"/test", &RequestOptions{
 		Auth:    []string{"one ", "two"},
-		Headers: map[string]string{"WWW-Authenticate": "foo"},
+		Headers: map[string]string{"WWW-Authenticate": "foo", "Proxy-Authorization": "bar"},
 	})
 
 	if err != nil {
