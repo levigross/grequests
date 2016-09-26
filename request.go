@@ -62,6 +62,9 @@ type RequestOptions struct {
 	// UserAgent allows you to set an arbitrary custom user agent
 	UserAgent string
 
+	// Host allows you to set an arbitrary custom host
+	Host string
+
 	// Auth allows you to specify a user name and password that you wish to
 	// use when requesting the URL. It will use basic HTTP authentication
 	// formatting the username and password in base64 the format is:
@@ -506,6 +509,10 @@ func addHTTPHeaders(ro *RequestOptions, req *http.Request) {
 		req.Header.Set("User-Agent", ro.UserAgent)
 	} else {
 		req.Header.Set("User-Agent", localUserAgent)
+	}
+
+	if ro.Host != "" {
+		req.Host = ro.Host
 	}
 
 	if ro.Auth != nil {
