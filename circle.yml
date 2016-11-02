@@ -1,11 +1,5 @@
-dependencies:
-  pre:
-      - go get github.com/axw/gocov/gocov
-      - go get github.com/mattn/goveralls
-      - go get github.com/golang/lint
 test:
   override:
       - diff -u <(echo -n) <(gofmt -s -d ./)
       - diff -u <(echo -n) <(go vet ./...)
-      - diff -u <(echo -n) <(golint ./...)
       - go test -v -race ./...
