@@ -1,5 +1,8 @@
 language: go
 
+matrix:
+  allow_failures:
+  - go: tip
 go:
 #  - 1.0 This won't work with coveralls
 #  - 1.1 This won't work with coveralls
