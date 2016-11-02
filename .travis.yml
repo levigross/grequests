@@ -6,7 +6,7 @@ go:
 #  - 1.2 This won't work with our XML wonderfulness
 #   - 1.3 This won't work with golint
 #   - 1.4 This won't work with golint
-  - 1.5
+#   - 1.5 This won't work with golint
   - 1.6
   - 1.7
   # - tip
