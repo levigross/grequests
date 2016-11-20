@@ -13,8 +13,6 @@ GRequests is licensed under the Apache License, Version 2.0. See [LICENSE](LICEN
 Features
 ========
 
-- Asynchronous and synchronous functionality built in
-- Works with every version of Go from 1.3
 - Responses can be serialized into JSON and XML
 - Easy file uploads
 - Easy file downloads
