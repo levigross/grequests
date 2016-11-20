@@ -19,6 +19,8 @@ import (
 
 	"github.com/google/go-querystring/query"
 
+	"context"
+
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -123,6 +125,9 @@ type RequestOptions struct {
 	// CookieJar allows you to specify a special cookiejar to use with your request.
 	// this option will take precedence over the `UseCookieJar` option above.
 	CookieJar http.CookieJar
+
+	// Context can be used to maintain state between requests https://golang.org/pkg/context/#Context
+	Context context.Context
 }
 
 func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
@@ -173,6 +178,10 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 	addCookies(ro, req)
 
 	addRedirectFunctionality(httpClient, ro)
+
+	if ro.Context != nil {
+		req = req.WithContext(ro.Context)
+	}
 
 	return httpClient.Do(req)
 }

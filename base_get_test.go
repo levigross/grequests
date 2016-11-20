@@ -2,6 +2,7 @@ package grequests
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -1229,6 +1230,16 @@ func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 
 func TestGetCustomRequestTimeout(t *testing.T) {
 	ro := &RequestOptions{RequestTimeout: 2 * time.Nanosecond}
+	if _, err := Get("http://httpbin.org", ro); err == nil {
+		t.Error("unexpected: successful connection")
+	}
+}
+
+func TestGetCustomRequestTimeoutContext(t *testing.T) {
+	derContext := context.Background()
+	ctx, cancel := context.WithTimeout(derContext, time.Microsecond)
+	ro := &RequestOptions{Context: ctx}
+	cancel()
 	if _, err := Get("http://httpbin.org", ro); err == nil {
 		t.Error("unexpected: successful connection")
 	}
