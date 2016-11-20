@@ -107,11 +107,6 @@ type RequestOptions struct {
 	// this is useful if you want to use an OAUTH client with your request.
 	HTTPClient *http.Client
 
-	// RedirectLocationTrusted is a flag that will enable all headers to be
-	// forwarded to the redirect location. Otherwise, the headers specified in
-	// `SensitiveHTTPHeaders` will be removed from the request.
-	RedirectLocationTrusted bool
-
 	// SensitiveHTTPHeaders is a map of sensitive HTTP headers that a user
 	// doesn't want passed on a redirect.
 	SensitiveHTTPHeaders map[string]struct{}
@@ -176,6 +171,7 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 	// Do we need to add any HTTP headers or Basic Auth?
 	addHTTPHeaders(ro, req)
 	addCookies(ro, req)
+
 	addRedirectFunctionality(httpClient, ro)
 
 	return httpClient.Do(req)

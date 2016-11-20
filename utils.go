@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	localUserAgent = "GRequests/0.7"
+	localUserAgent = "GRequests/0.10"
 
 	// Default value for net.Dialer Timeout
 	dialTimeout = 30 * time.Second
@@ -52,6 +52,9 @@ var (
 type XMLCharDecoder func(charset string, input io.Reader) (io.Reader, error)
 
 func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
+	if client.CheckRedirect != nil {
+		return
+	}
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		if ro.RedirectLimit == 0 {
 			ro.RedirectLimit = RedirectLimit
@@ -67,7 +70,7 @@ func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
 
 		for k, vv := range via[0].Header {
 			// Is this a sensitive header?
-			if _, found := ro.SensitiveHTTPHeaders[k]; found && ro.RedirectLocationTrusted == false {
+			if _, found := ro.SensitiveHTTPHeaders[k]; found {
 				continue
 			}
 

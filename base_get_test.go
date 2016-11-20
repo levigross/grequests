@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -1164,29 +1165,28 @@ func TestAuthStripOnRedirect(t *testing.T) {
 	srv.Close()
 }
 
-func TestNoAuthStripOnRedirect(t *testing.T) {
+func TestNoRedirect(t *testing.T) {
 	srv := httptest.NewServer(http.DefaultServeMux)
-	http.HandleFunc("/tester/", func(w http.ResponseWriter, req *http.Request) {
-		if req.Header.Get("Authorization") == "" {
-			http.Error(w, "Didn't find Auth: "+req.Header.Get("Authorization"), http.StatusInternalServerError)
-		}
+	http.HandleFunc("/3tester/", func(w http.ResponseWriter, req *http.Request) {
+		http.Redirect(w, req, "/", http.StatusMovedPermanently)
 	})
 
-	resp, err := Get(srv.URL+"/tester", &RequestOptions{
-		Auth:                    []string{"one ", "two"},
-		Headers:                 map[string]string{"WWW-Authenticate": "foo"},
-		RedirectLocationTrusted: true,
-	})
-
-	if err != nil {
-		t.Error("Request didn't creds inside", err)
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return errors.New("cancel redirection")
+		},
 	}
 
-	if resp.Ok != true {
-		t.Error("Request didn't creds inside", resp.StatusCode, resp.String())
+	_, err := Get(srv.URL+"/3tester/", &RequestOptions{
+		HTTPClient: client,
+	})
+
+	if err == nil {
+		t.Error("Request passed when it was supposed to fail on redirect", err)
 	}
 
 	srv.Close()
+
 }
 
 func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
