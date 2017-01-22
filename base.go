@@ -56,3 +56,12 @@ func Head(url string, ro *RequestOptions) (*Response, error) {
 func Options(url string, ro *RequestOptions) (*Response, error) {
 	return doRegularRequest("OPTIONS", url, ro)
 }
+
+// Req takes 3 parameters and returns a Response Struct. These three options are:
+//	1. A verb
+// 	2. A URL
+// 	3. A RequestOptions struct
+// If you do not intend to use the `RequestOptions` you can just pass nil
+func Req(verb string, url string, ro *RequestOptions) (*Response, error) {
+	return doRegularRequest(verb, url, ro)
+}
