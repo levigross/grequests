@@ -17,7 +17,7 @@ script:
   - diff -u <(echo -n) <(gofmt -s -d ./)
   - diff -u <(echo -n) <(go vet ./...)
   - diff -u <(echo -n) <(golint ./...)
-  - go test -short -v -race -covermode=atomic -coverprofile=coverage.out
+  - go test -v -race -covermode=atomic -coverprofile=coverage.out
 
 after_success:
   - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
