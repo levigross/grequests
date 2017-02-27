@@ -203,6 +203,25 @@ func (r *Response) String() string {
 	return r.internalByteBuffer.String()
 }
 
+
+// JSONString returns the response as a json string
+func (r *Response) JSONString(indent string) (string, error) {
+
+	if r.Error != nil {
+		return "", r.Error
+	}
+
+	var buf []byte
+	dst := bytes.NewBuffer(buf)
+
+	if err := json.Indent(dst, r.Bytes(), "", indent); err != nil {
+		return "", err
+	}
+
+	return dst.String(), nil
+}
+
+
 // ClearInternalBuffer is a function that will clear the internal buffer that we use to hold the .String() and .Bytes()
 // data. Once you have used these functions – you may want to free up the memory.
 func (r *Response) ClearInternalBuffer() {
