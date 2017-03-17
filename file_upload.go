@@ -32,6 +32,18 @@ func FileUploadFromDisk(fileName string) ([]FileUpload, error) {
 
 }
 
+// FileUploadFromDiskWithFieldName same as FileUploadFromDisk but with specified fieldName
+func FileUploadFromDiskWithFieldName(fieldName, fileName string) ([]FileUpload, error) {
+	fd, err := os.Open(fileName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return []FileUpload{{FileContents: fd, FileName: fileName, FieldName: fieldName}}, nil
+
+}
+
 // FileUploadFromGlob allows you to create a FileUpload struct slice by just specifying a glob location on the disk
 // this function will gloss over all errors in the files and only upload the files that don't return errors from the glob
 func FileUploadFromGlob(fileSystemGlob string) ([]FileUpload, error) {
