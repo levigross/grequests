@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 )
@@ -537,7 +538,68 @@ func TestBasicPostRequestUpload(t *testing.T) {
 	if myJSONStruct.Form.One != "Two" {
 		t.Error("Unable to parse form properly", myJSONStruct.Form)
 	}
+}
 
+func TestBasicPostRequestUploadWithMime(t *testing.T) {
+
+	fd, err := os.Open("testdata/mypassword")
+
+	if err != nil {
+		t.Error("Unable to open file: ", err)
+	}
+
+	resp, _ := Post("http://httpbin.org/post",
+		&RequestOptions{
+			Files: []FileUpload{{FileContents: fd, FileMime: "text/plain"}},
+			Data:  map[string]string{"One": "Two"},
+		})
+
+	if resp.Error != nil {
+		t.Fatal("Unable to make request", resp.Error)
+	}
+
+	if resp.Ok != true {
+		t.Error("Request did not return OK")
+	}
+
+	myJSONStruct := &BasicPostFileUpload{}
+
+	if err := resp.JSON(myJSONStruct); err != nil {
+		t.Error("Unable to coerce to JSON", err)
+	}
+
+	if myJSONStruct.URL != "http://httpbin.org/post" {
+		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
+	}
+
+	if myJSONStruct.Headers.Host != "httpbin.org" {
+		t.Error("The host header is invalid")
+	}
+
+	if myJSONStruct.Files.File != "saucy sauce" {
+		t.Error("File upload contents have been modified: ", myJSONStruct.Files.File)
+	}
+
+	if resp.Bytes() != nil {
+		t.Error("JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
+	}
+
+	if resp.String() != "" {
+		t.Error("JSON decoding did not fully consume the response stream (String)", resp.String())
+	}
+
+	if resp.StatusCode != 200 {
+		t.Error("Response returned a non-200 code")
+	}
+
+	if myJSONStruct.Form.One != "Two" {
+		t.Error("Unable to parse form properly", myJSONStruct.Form)
+	}
+
+	// TODO: Ensure file field contains correct content-type, field, and
+	// filename information as soon as
+	// https://github.com/kennethreitz/httpbin/pull/388 gets merged
+	// (Or figure out a way to test this case the PR is rejected)
 }
 
 func TestBasicPostRequestUploadMultipleFiles(t *testing.T) {

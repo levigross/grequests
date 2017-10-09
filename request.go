@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
+	"net/textproto"
 	"net/url"
 	"strconv"
 	"strings"
@@ -136,6 +138,12 @@ func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, e
 
 func doSessionRequest(requestVerb, url string, ro *RequestOptions, httpClient *http.Client) (*Response, error) {
 	return buildResponse(buildRequest(requestVerb, url, ro, httpClient))
+}
+
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+func escapeQuotes(s string) string {
+	return quoteEscaper.Replace(s)
 }
 
 // buildRequest is where most of the magic happens for request processing
@@ -281,7 +289,17 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 			}
 		}
 
-		writer, err := multipartWriter.CreateFormFile(fieldName, f.FileName)
+		var writer io.Writer
+		var err error
+
+		if f.FileMime != "" {
+			h := make(textproto.MIMEHeader)
+			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(fieldName), escapeQuotes(f.FileName)))
+			h.Set("Content-Type", f.FileMime)
+			writer, err = multipartWriter.CreatePart(h)
+		} else {
+			writer, err = multipartWriter.CreateFormFile(fieldName, f.FileName)
+		}
 
 		if err != nil {
 			return nil, err
