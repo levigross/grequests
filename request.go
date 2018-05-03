@@ -147,7 +147,7 @@ func escapeQuotes(s string) string {
 }
 
 // buildRequest is where most of the magic happens for request processing
-func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.Client) (*http.Response, error) {
+func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.Client) (req *http.Request, resp *http.Response, err error) {
 	if ro == nil {
 		ro = &RequestOptions{}
 	}
@@ -162,23 +162,22 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 		httpClient = BuildHTTPClient(*ro)
 	}
 
-	var err error // we don't want to shadow url so we won't use :=
 	switch {
 	case len(ro.Params) != 0:
 		if url, err = buildURLParams(url, ro.Params); err != nil {
-			return nil, err
+			return
 		}
 	case ro.QueryStruct != nil:
 		if url, err = buildURLStruct(url, ro.QueryStruct); err != nil {
-			return nil, err
+			return
 		}
 	}
 
 	// Build the request
-	req, err := buildHTTPRequest(httpMethod, url, ro)
+	req, err = buildHTTPRequest(httpMethod, url, ro)
 
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	// Do we need to add any HTTP headers or Basic Auth?
@@ -191,7 +190,8 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 		req = req.WithContext(ro.Context)
 	}
 
-	return httpClient.Do(req)
+	resp, err = httpClient.Do(req)
+	return
 }
 
 func buildHTTPRequest(httpMethod, userURL string, ro *RequestOptions) (*http.Request, error) {

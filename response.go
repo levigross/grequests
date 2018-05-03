@@ -19,6 +19,9 @@ type Response struct {
 	// This is the Go error flag – if something went wrong within the request, this flag will be set.
 	Error error
 
+	// RawRequest is the http.Request that was sent to obtain this Response.
+	RawRequest *http.Request
+
 	// We want to abstract (at least at the moment) the Go http.Response object away. So we are going to make use of it
 	// internal but not give the user access
 	RawResponse *http.Response
@@ -32,16 +35,17 @@ type Response struct {
 	internalByteBuffer *bytes.Buffer
 }
 
-func buildResponse(resp *http.Response, err error) (*Response, error) {
+func buildResponse(req *http.Request, resp *http.Response, err error) (*Response, error) {
 	// If the connection didn't succeed we just return a blank response
 	if err != nil {
-		return &Response{Error: err}, err
+		return &Response{Error: err, RawRequest: req}, err
 	}
 
 	goodResp := &Response{
 		// If your code is within the 2xx range – the response is considered `Ok`
 		Ok:                 resp.StatusCode >= 200 && resp.StatusCode < 300,
 		Error:              nil,
+		RawRequest:         req,
 		RawResponse:        resp,
 		StatusCode:         resp.StatusCode,
 		Header:             resp.Header,
