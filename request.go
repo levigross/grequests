@@ -137,7 +137,7 @@ type RequestOptions struct {
 	BeforeRequest func(req *http.Request) error
 }
 
-func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
+func DoRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
 	return buildResponse(buildRequest(requestVerb, url, ro, nil))
 }
 

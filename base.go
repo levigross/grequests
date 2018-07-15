@@ -6,7 +6,7 @@ package grequests
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Get(url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest("GET", url, ro)
+	return DoRegularRequest("GET", url, ro)
 }
 
 // Put takes 2 parameters and returns a Response struct. These two options are:
@@ -14,7 +14,7 @@ func Get(url string, ro *RequestOptions) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Put(url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest("PUT", url, ro)
+	return DoRegularRequest("PUT", url, ro)
 }
 
 // Patch takes 2 parameters and returns a Response struct. These two options are:
@@ -22,7 +22,7 @@ func Put(url string, ro *RequestOptions) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Patch(url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest("PATCH", url, ro)
+	return DoRegularRequest("PATCH", url, ro)
 }
 
 // Delete takes 2 parameters and returns a Response struct. These two options are:
@@ -30,7 +30,7 @@ func Patch(url string, ro *RequestOptions) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Delete(url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest("DELETE", url, ro)
+	return DoRegularRequest("DELETE", url, ro)
 }
 
 // Post takes 2 parameters and returns a Response channel. These two options are:
@@ -38,7 +38,7 @@ func Delete(url string, ro *RequestOptions) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Post(url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest("POST", url, ro)
+	return DoRegularRequest("POST", url, ro)
 }
 
 // Head takes 2 parameters and returns a Response channel. These two options are:
@@ -46,7 +46,7 @@ func Post(url string, ro *RequestOptions) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Head(url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest("HEAD", url, ro)
+	return DoRegularRequest("HEAD", url, ro)
 }
 
 // Options takes 2 parameters and returns a Response struct. These two options are:
@@ -54,7 +54,7 @@ func Head(url string, ro *RequestOptions) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Options(url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest("OPTIONS", url, ro)
+	return DoRegularRequest("OPTIONS", url, ro)
 }
 
 // Req takes 3 parameters and returns a Response Struct. These three options are:
@@ -63,5 +63,5 @@ func Options(url string, ro *RequestOptions) (*Response, error) {
 // 	3. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Req(verb string, url string, ro *RequestOptions) (*Response, error) {
-	return doRegularRequest(verb, url, ro)
+	return DoRegularRequest(verb, url, ro)
 }
