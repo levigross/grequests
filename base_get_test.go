@@ -25,6 +25,7 @@ type BasicGetResponse struct {
 		Dnt            string `json:"Dst"`
 		Host           string `json:"Host"`
 		UserAgent      string `json:"User-Agent"`
+		Hello          string `json:"Hello"`
 	} `json:"headers"`
 	Origin string `json:"origin"`
 	URL    string `json:"url"`
@@ -224,6 +225,19 @@ type GithubSelfJSON struct {
 func TestGetNoOptions(t *testing.T) {
 	resp, _ := Get("http://httpbin.org/get", nil)
 	verifyOkResponse(resp, t)
+}
+
+func TestGetRequestHook(t *testing.T) {
+	addHelloWorld := func(req *http.Request) error {
+		req.Header.Add("Hello", "World")
+		return nil
+	}
+	resp, _ := Get("http://httpbin.org/get",
+		&RequestOptions{BeforeRequest: addHelloWorld})
+	j := verifyOkResponse(resp, t)
+	if j.Headers.Hello != "World" {
+		t.Error("Hook Function failed")
+	}
 }
 
 func TestGetNoOptionsCustomClient(t *testing.T) {

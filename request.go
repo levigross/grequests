@@ -130,6 +130,11 @@ type RequestOptions struct {
 
 	// Context can be used to maintain state between requests https://golang.org/pkg/context/#Context
 	Context context.Context
+
+	// BeforeRequest is a hook that can be used to modify the request object
+	// before the request has been fired. This is useful for adding authentication
+	// and other functionality not provided in this library
+	BeforeRequest func(req *http.Request) error
 }
 
 func doRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
@@ -189,6 +194,12 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 
 	if ro.Context != nil {
 		req = req.WithContext(ro.Context)
+	}
+
+	if ro.BeforeRequest != nil {
+		if err := ro.BeforeRequest(req); err != nil {
+			return nil, err
+		}
 	}
 
 	return httpClient.Do(req)
