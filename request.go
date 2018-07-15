@@ -137,6 +137,7 @@ type RequestOptions struct {
 	BeforeRequest func(req *http.Request) error
 }
 
+// DoRegularRequest adds generic test functionality
 func DoRegularRequest(requestVerb, url string, ro *RequestOptions) (*Response, error) {
 	return buildResponse(buildRequest(requestVerb, url, ro, nil))
 }
