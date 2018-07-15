@@ -19,8 +19,6 @@ func TestBasicPutRequest(t *testing.T) {
 }
 
 func TestBasicPutUploadRequest(t *testing.T) {
-	t.Skip("httpbin.org is broken, as of https://github.com/kennethreitz/httpbin/issues/340#issuecomment-330176449")
-
 	fd, err := FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {

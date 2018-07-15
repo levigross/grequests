@@ -304,6 +304,9 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 		var err error
 
 		if f.FileMime != "" {
+			if f.FileName == "" {
+				f.FileName = "filename"
+			}
 			h := make(textproto.MIMEHeader)
 			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(fieldName), escapeQuotes(f.FileName)))
 			h.Set("Content-Type", f.FileMime)
@@ -320,7 +323,9 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 			return nil, err
 		}
 
-		f.FileContents.Close()
+		if err := f.FileContents.Close(); err != nil {
+			return nil, err
+		}
 
 	}
 
