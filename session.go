@@ -1,6 +1,9 @@
 package grequests
 
-import "net/http"
+import (
+	"net/http"
+	"net/url"
+)
 
 // Session allows a user to make use of persistent cookies in between
 // HTTP requests
@@ -30,6 +33,7 @@ func NewSession(ro *RequestOptions) *Session {
 // 2. Host
 // 3. Auth
 // 4. Headers
+// 5. Proxies
 func (s *Session) combineRequestOptions(ro *RequestOptions) *RequestOptions {
 	if ro == nil {
 		ro = &RequestOptions{}
@@ -56,6 +60,17 @@ func (s *Session) combineRequestOptions(ro *RequestOptions) *RequestOptions {
 			headers[k] = v
 		}
 		ro.Headers = headers
+	}
+
+	if len(s.RequestOptions.Proxies) > 0 || len(ro.Proxies) > 0 {
+		proxies := make(map[string]*url.URL)
+		for k, v := range s.RequestOptions.Proxies {
+			proxies[k] = v
+		}
+		for k, v := range ro.Proxies {
+			proxies[k] = v
+		}
+		ro.Proxies = proxies
 	}
 	return ro
 }
