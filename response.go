@@ -122,11 +122,7 @@ func (r *Response) XML(userStruct interface{}, charsetReader XMLCharDecoder) err
 
 	defer r.Close()
 
-	if err := xmlDecoder.Decode(&userStruct); err != nil && err != io.EOF {
-		return err
-	}
-
-	return nil
+	return xmlDecoder.Decode(&userStruct)
 }
 
 // JSON is a method that will populate a struct that is provided `userStruct` with the JSON returned within the
@@ -140,11 +136,7 @@ func (r *Response) JSON(userStruct interface{}) error {
 	jsonDecoder := json.NewDecoder(r.getInternalReader())
 	defer r.Close()
 
-	if err := jsonDecoder.Decode(&userStruct); err != nil && err != io.EOF {
-		return err
-	}
-
-	return nil
+	return jsonDecoder.Decode(&userStruct)
 }
 
 // createResponseBytesBuffer is a utility method that will populate the internal byte reader – this is largely used for .String()
