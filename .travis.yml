@@ -3,10 +3,9 @@ language: go
 matrix:
   fast_finish: true
   include:
-  - go: 1.7
-  - go: 1.8
   - go: 1.9
   - go: "1.10"
+  - go: "1.11"
   - go: master
   allow_failures:
   - go: master
