@@ -6,7 +6,7 @@ import (
 )
 
 func TestBasicHeadRequest(t *testing.T) {
-	resp, err := Head("http://httpbin.org/get", nil)
+	resp, err := Head("http://httpbin.org/get")
 	if err != nil {
 		t.Error("Unable to make HEAD request: ", resp.Error)
 	}
@@ -21,7 +21,7 @@ func TestBasicHeadRequest(t *testing.T) {
 }
 
 func TestBasicHeadRequestNoContent(t *testing.T) {
-	resp, err := Head("http://httpbin.org/bytes/0", nil)
+	resp, err := Head("http://httpbin.org/bytes/0")
 	if err != nil {
 		t.Error("Unable to make HEAD request: ", resp.Error)
 	}

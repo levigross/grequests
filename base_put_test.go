@@ -6,7 +6,7 @@ import (
 )
 
 func TestBasicPutRequest(t *testing.T) {
-	resp, err := Put("http://httpbin.org/put", nil)
+	resp, err := Put("http://httpbin.org/put")
 
 	if err != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -26,10 +26,10 @@ func TestBasicPutUploadRequest(t *testing.T) {
 	}
 
 	resp, _ := Put("http://httpbin.org/put",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: fd,
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if resp.Error != nil {
 		t.Error("Unable to make request", resp.Error)
@@ -49,10 +49,10 @@ func TestBasicPutUploadRequestInvalidURL(t *testing.T) {
 	}
 
 	_, err = Put("%../dir/",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: fd,
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if err == nil {
 		t.Fatal("Somehow able to make the request")

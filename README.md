@@ -31,7 +31,7 @@ Basic Examples
 Basic GET request:
 
 ```go
-resp, err := grequests.Get("http://httpbin.org/get", nil)
+resp, err := grequests.Get("http://httpbin.org/get")
 // You can modify the request by passing an optional RequestOptions struct
 
 if err != nil {
@@ -84,7 +84,7 @@ The following methods make use of an internal byte buffer
 In the code below, once the file is downloaded – the `Response` struct no longer has access to the request bytes
 
 ```go
-response := Get("http://some-wonderful-file.txt", nil)
+response := Get("http://some-wonderful-file.txt")
 
 if err := response.DownloadToFile("randomFile"); err != nil {
 	log.Println("Unable to download file: ", err)
@@ -100,7 +100,7 @@ response.String() == "" // true
 But if we were to call `response.Bytes()` or `response.String()` first, every operation will succeed until the internal buffer is cleared:
 
 ```go
-response := Get("http://some-wonderful-file.txt", nil)
+response := Get("http://some-wonderful-file.txt")
 
 // This call to .Bytes caches the request bytes in an internal byte buffer – which can be used again and again until it is cleared
 response.Bytes() == `file-bytes`

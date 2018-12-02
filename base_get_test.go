@@ -223,7 +223,7 @@ type GithubSelfJSON struct {
 }
 
 func TestGetNoOptions(t *testing.T) {
-	resp, _ := Get("http://httpbin.org/get", nil)
+	resp, _ := Get("http://httpbin.org/get")
 	verifyOkResponse(resp, t)
 }
 
@@ -233,7 +233,7 @@ func TestGetRequestHook(t *testing.T) {
 		return nil
 	}
 	resp, _ := Get("http://httpbin.org/get",
-		&RequestOptions{BeforeRequest: addHelloWorld})
+		FromRequestOptions(&RequestOptions{BeforeRequest: addHelloWorld}))
 	j := verifyOkResponse(resp, t)
 	if j.Headers.Hello != "World" {
 		t.Error("Hook Function failed")
@@ -242,20 +242,20 @@ func TestGetRequestHook(t *testing.T) {
 
 func TestGetNoOptionsCustomClient(t *testing.T) {
 	resp, _ := Get("http://httpbin.org/get",
-		&RequestOptions{HTTPClient: http.DefaultClient})
+		FromRequestOptions(&RequestOptions{HTTPClient: http.DefaultClient}))
 	verifyOkResponse(resp, t)
 }
 
 func TestGetCustomTLSHandshakeTimeout(t *testing.T) {
 	ro := &RequestOptions{TLSHandshakeTimeout: 10 * time.Millisecond}
-	if _, err := Get("https://httpbin.org", ro); err == nil {
+	if _, err := Get("https://httpbin.org", FromRequestOptions(ro)); err == nil {
 		t.Error("unexpected: successful TLS Handshake")
 	}
 }
 
 func TestGetCustomDialTimeout(t *testing.T) {
 	ro := &RequestOptions{DialTimeout: time.Nanosecond}
-	if _, err := Get("http://httpbin.org", ro); err == nil {
+	if _, err := Get("http://httpbin.org", FromRequestOptions(ro)); err == nil {
 		t.Error("unexpected: successful connection")
 	}
 }
@@ -280,7 +280,7 @@ func TestGetProxy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := Head(ts.URL, &RequestOptions{Proxies: map[string]*url.URL{pu.Scheme: pu}})
+	resp, err := Head(ts.URL, FromRequestOptions(&RequestOptions{Proxies: map[string]*url.URL{pu.Scheme: pu}}))
 
 	defer http.DefaultTransport.(*http.Transport).CloseIdleConnections()
 
@@ -300,7 +300,7 @@ func TestGetProxy(t *testing.T) {
 }
 
 func TestGetSyncInvalidProxyScheme(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", &RequestOptions{Proxies: map[string]*url.URL{"gopher": nil}})
+	resp, err := Get("http://httpbin.org/get", FromRequestOptions(&RequestOptions{Proxies: map[string]*url.URL{"gopher": nil}}))
 	if err != nil {
 		t.Error("Request failed: ", err)
 	}
@@ -309,7 +309,7 @@ func TestGetSyncInvalidProxyScheme(t *testing.T) {
 }
 
 func TestGetSyncNoOptions(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", nil)
+	resp, err := Get("http://httpbin.org/get")
 	if err != nil {
 		t.Error("Request failed: ", err)
 	}
@@ -318,13 +318,13 @@ func TestGetSyncNoOptions(t *testing.T) {
 }
 
 func TestGetNoOptionsGzip(t *testing.T) {
-	resp, _ := Get("https://httpbin.org/gzip", nil)
+	resp, _ := Get("https://httpbin.org/gzip")
 	verifyOkResponse(resp, t)
 }
 
 func TestGetWithCookies(t *testing.T) {
 	resp, err := Get("http://httpbin.org/cookies",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Cookies: []*http.Cookie{
 				{
 					Name:     "TestCookie",
@@ -338,7 +338,7 @@ func TestGetWithCookies(t *testing.T) {
 					Secure:   false,
 				},
 			},
-		})
+		}))
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -367,7 +367,7 @@ func TestGetWithCookies(t *testing.T) {
 func TestGetWithCookiesCustomCookieJar(t *testing.T) {
 	cookieJar, _ := cookiejar.New(nil)
 	resp, err := Get("http://httpbin.org/cookies",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			CookieJar: cookieJar,
 			Cookies: []*http.Cookie{
 				{
@@ -382,7 +382,7 @@ func TestGetWithCookiesCustomCookieJar(t *testing.T) {
 					Secure:   false,
 				},
 			},
-		})
+		}))
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -482,7 +482,7 @@ func xmlASCIIDecoder(charset string, input io.Reader) (io.Reader, error) {
 }
 
 func TestGetInvalidURL(t *testing.T) {
-	resp, err := Get("%../dir/", &RequestOptions{Params: map[string]string{"1": "2"}})
+	resp, err := Get("%../dir/", FromRequestOptions(&RequestOptions{Params: map[string]string{"1": "2"}}))
 
 	if err == nil {
 		t.Error("Some how the request was valid to make request", err)
@@ -492,7 +492,7 @@ func TestGetInvalidURL(t *testing.T) {
 }
 
 func TestGetInvalidURLNoParams(t *testing.T) {
-	_, err := Get("%../dir/", nil)
+	_, err := Get("%../dir/")
 
 	if err == nil {
 		t.Error("Some how the request was valid to make request", err)
@@ -508,7 +508,7 @@ func TestGetInvalidURLSession(t *testing.T) {
 }
 
 func TestGetXMLSerialize(t *testing.T) {
-	resp, err := Get("http://httpbin.org/xml", nil)
+	resp, err := Get("http://httpbin.org/xml")
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -534,9 +534,17 @@ func TestGetXMLSerialize(t *testing.T) {
 
 }
 
-func TestGetCustomUserAgent(t *testing.T) {
+func TestGetCustomUserAgentOld(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1"}
-	resp, _ := Get("http://httpbin.org/get", ro)
+	resp, _ := Get("http://httpbin.org/get", FromRequestOptions(ro))
+	jsonResp := verifyOkResponse(resp, t)
+	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
+		t.Error("User agent header not properly set")
+	}
+}
+
+func TestGetCustomUserAgent(t *testing.T) {
+	resp, _ := Get("http://httpbin.org/get", UserAgent("leviBot 0.1"))
 	jsonResp := verifyOkResponse(resp, t)
 	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
 		t.Error("User agent header not properly set")
@@ -545,7 +553,7 @@ func TestGetCustomUserAgent(t *testing.T) {
 
 func TestGetBasicAuth(t *testing.T) {
 	ro := &RequestOptions{Auth: []string{"Levi", "Bot"}}
-	resp, err := Get("http://httpbin.org/get", ro)
+	resp, err := Get("http://httpbin.org/get", FromRequestOptions(ro))
 	// Not the usual JSON so copy and paste from below
 
 	if err != nil {
@@ -572,7 +580,7 @@ func TestGetBasicAuth(t *testing.T) {
 func TestGetCustomHeader(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1",
 		Headers: map[string]string{"X-Wonderful-Header": "1"}}
-	resp, err := Get("http://httpbin.org/get", ro)
+	resp, err := Get("http://httpbin.org/get", FromRequestOptions(ro))
 	// Not the usual JSON so copy and paste from below
 
 	if err != nil {
@@ -602,7 +610,7 @@ func TestGetInvalidSSLCertNoVerify(t *testing.T) {
 		"https://expired.badssl.com/",
 		"https://wrong.host.badssl.com/",
 	} {
-		resp, err := Get(badSSL, ro)
+		resp, err := Get(badSSL, FromRequestOptions(ro))
 		if err != nil {
 			t.Error("Unable to make request", err)
 		}
@@ -619,7 +627,7 @@ func TestGetInvalidSSLCertNoVerifyNoOptions(t *testing.T) {
 		"https://expired.badssl.com/",
 		"https://wrong.host.badssl.com/",
 	} {
-		resp, err := Get(badSSL, nil)
+		resp, err := Get(badSSL)
 		if err == nil {
 			t.Error("Unable to make request", err)
 		}
@@ -632,7 +640,7 @@ func TestGetInvalidSSLCertNoVerifyNoOptions(t *testing.T) {
 
 func TestGetInvalidSSLCertNoCompression(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: true}
-	resp, err := Get("https://self-signed.badssl.com/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -646,7 +654,7 @@ func TestGetInvalidSSLCertNoCompression(t *testing.T) {
 
 func TestGetInvalidSSLCertWithCompression(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: false}
-	resp, err := Get("https://self-signed.badssl.com/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -660,7 +668,7 @@ func TestGetInvalidSSLCertWithCompression(t *testing.T) {
 
 func TestErrorResponseNOOP(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: false}
-	resp, err := Get("https://self-signed.badssl.com/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -716,7 +724,7 @@ func TestErrorResponseNOOP(t *testing.T) {
 
 func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: true}
-	resp, err := Get("https://self-signed.badssl.com/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err != nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -730,7 +738,7 @@ func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
 
 func TestGetInvalidSSLCertWithCompressionNoVerify(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: false}
-	resp, err := Get("https://self-signed.badssl.com/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err != nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -744,7 +752,7 @@ func TestGetInvalidSSLCertWithCompressionNoVerify(t *testing.T) {
 
 func TestGetInvalidSSLCert(t *testing.T) {
 	ro := &RequestOptions{UserAgent: "LeviBot 0.1"}
-	resp, err := Get("https://self-signed.badssl.com/", ro)
+	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -760,7 +768,7 @@ func TestGetBasicArgs(t *testing.T) {
 	ro := &RequestOptions{
 		Params: map[string]string{"Hello": "World"},
 	}
-	resp, _ := Get("http://httpbin.org/get?Goodbye=World", ro)
+	resp, _ := Get("http://httpbin.org/get?Goodbye=World", FromRequestOptions(ro))
 
 	verifyOkArgsResponse(resp, t)
 
@@ -774,7 +782,7 @@ func TestGetBasicArgsQueryStruct(t *testing.T) {
 			"World",
 		},
 	}
-	resp, _ := Get("http://httpbin.org/get?Goodbye=World", ro)
+	resp, _ := Get("http://httpbin.org/get?Goodbye=World", FromRequestOptions(ro))
 
 	verifyOkArgsResponse(resp, t)
 
@@ -784,7 +792,7 @@ func TestGetBasicArgsQueryStructErr(t *testing.T) {
 	ro := &RequestOptions{
 		QueryStruct: 5,
 	}
-	resp, err := Get("http://httpbin.org/get?Goodbye=World", ro)
+	resp, err := Get("http://httpbin.org/get?Goodbye=World", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("URL Parsing should have failed")
@@ -800,7 +808,7 @@ func TestGetBasicArgsQueryStructUrlQueryErr(t *testing.T) {
 	ro := &RequestOptions{
 		QueryStruct: 5,
 	}
-	resp, err := Get("http://httpbin.org/get?Goodbye=World%zz", ro)
+	resp, err := Get("http://httpbin.org/get?Goodbye=World%zz", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("URL Parsing should have failed")
@@ -816,7 +824,7 @@ func TestGetBasicArgsQueryStructUrlErr(t *testing.T) {
 	ro := &RequestOptions{
 		QueryStruct: 5,
 	}
-	resp, err := Get("%", ro)
+	resp, err := Get("%", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("URL Parsing should have failed")
@@ -832,7 +840,7 @@ func TestGetBasicArgsErr(t *testing.T) {
 	ro := &RequestOptions{
 		Params: map[string]string{"Hello": "World"},
 	}
-	resp, err := Get("http://httpbin.org/get?Goodbye=%zzz", ro)
+	resp, err := Get("http://httpbin.org/get?Goodbye=%zzz", FromRequestOptions(ro))
 
 	if err == nil {
 		t.Error("URL Parsing should have failed")
@@ -848,7 +856,7 @@ func TestGetBasicArgsParams(t *testing.T) {
 	ro := &RequestOptions{
 		Params: map[string]string{"Hello": "World", "Goodbye": "World"},
 	}
-	resp, _ := Get("http://httpbin.org/get", ro)
+	resp, _ := Get("http://httpbin.org/get", FromRequestOptions(ro))
 
 	verifyOkArgsResponse(resp, t)
 }
@@ -858,13 +866,13 @@ func TestGetBasicArgsParamsOverwrite(t *testing.T) {
 		Params: map[string]string{"Hello": "World", "Goodbye": "World"},
 	}
 
-	resp, _ := Get("http://httpbin.org/get?Hello=Nothing", ro)
+	resp, _ := Get("http://httpbin.org/get?Hello=Nothing", FromRequestOptions(ro))
 
 	verifyOkArgsResponse(resp, t)
 }
 
 func TestGetFileDownload(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", nil)
+	resp, err := Get("http://httpbin.org/get")
 
 	fileName := "randomFile"
 
@@ -915,7 +923,7 @@ func TestGetFileDownload(t *testing.T) {
 }
 
 func TestJsonConsumedResponse(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", nil)
+	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -937,7 +945,7 @@ func TestJsonConsumedResponse(t *testing.T) {
 }
 
 func TestDownloadConsumedResponse(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", nil)
+	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -961,7 +969,7 @@ func TestDownloadConsumedResponse(t *testing.T) {
 }
 
 func TestGetBytes(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", nil)
+	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -981,7 +989,7 @@ func TestGetBytes(t *testing.T) {
 }
 
 func TestGetBytesNoBuffer(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", nil)
+	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -1013,7 +1021,7 @@ func TestGetBytesNoBuffer(t *testing.T) {
 }
 
 func TestGetString(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", nil)
+	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
 		t.Error("Unable to make request", err)
@@ -1053,7 +1061,7 @@ func TestGetRedirectHeaderCopy(t *testing.T) {
 			return
 		}
 	})
-	resp, err := Get(srv.URL+"/foo", &RequestOptions{Headers: map[string]string{"X-Custom": "1"}})
+	resp, err := Get(srv.URL+"/foo", FromRequestOptions(&RequestOptions{Headers: map[string]string{"X-Custom": "1"}}))
 
 	if err != nil {
 		t.Error("Redirect request failed", err)
@@ -1075,9 +1083,9 @@ func TestGetRedirectSecretHeaderNoCopy(t *testing.T) {
 			return
 		}
 	})
-	resp, err := Get(srv.URL+"/sec", &RequestOptions{
+	resp, err := Get(srv.URL+"/sec", FromRequestOptions(&RequestOptions{
 		Headers: map[string]string{"X-Custom": "1"}, SensitiveHTTPHeaders: map[string]struct{}{"X-Custom": {}},
-	})
+	}))
 
 	if err != nil {
 		t.Error("Redirect request failed", err)
@@ -1095,7 +1103,7 @@ func TestMassiveJSONFile(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping massive JSON file download because short was called")
 	}
-	resp, err := Get("https://raw.githubusercontent.com/levigross/sf-city-lots-json/master/citylots.json", nil)
+	resp, err := Get("https://raw.githubusercontent.com/levigross/sf-city-lots-json/master/citylots.json")
 	if err != nil {
 		t.Error("Request to massive JSON blob failed", err)
 	}
@@ -1112,7 +1120,7 @@ func TestMassiveJSONFile(t *testing.T) {
 }
 
 func TestGitHubSelfJSON(t *testing.T) {
-	resp, err := Get("https://api.github.com/repos/levigross/grequests", nil)
+	resp, err := Get("https://api.github.com/repos/levigross/grequests")
 	if err != nil {
 		t.Error("Request to reddit JSON blob failed", err)
 	}
@@ -1130,7 +1138,7 @@ func TestUnlimitedRedirects(t *testing.T) {
 		http.Redirect(w, req, "/bar", http.StatusMovedPermanently)
 	})
 
-	resp, err := Get(srv.URL+"/bar", &RequestOptions{Headers: map[string]string{"X-Custom": "1"}})
+	resp, err := Get(srv.URL+"/bar", FromRequestOptions(&RequestOptions{Headers: map[string]string{"X-Custom": "1"}}))
 
 	if err == nil {
 		t.Error("Redirect limitation failed", err)
@@ -1165,10 +1173,10 @@ func TestAuthStripOnRedirect(t *testing.T) {
 		io.WriteString(w, "OK")
 	})
 
-	resp, err := Get(srv.URL+"/test", &RequestOptions{
+	resp, err := Get(srv.URL+"/test", FromRequestOptions(&RequestOptions{
 		Auth:    []string{"one ", "two"},
 		Headers: map[string]string{"WWW-Authenticate": "foo", "Proxy-Authorization": "bar"},
-	})
+	}))
 
 	if err != nil {
 		t.Error("Request had creds inside", err)
@@ -1193,9 +1201,9 @@ func TestNoRedirect(t *testing.T) {
 		},
 	}
 
-	_, err := Get(srv.URL+"/3tester/", &RequestOptions{
+	_, err := Get(srv.URL+"/3tester/", FromRequestOptions(&RequestOptions{
 		HTTPClient: client,
-	})
+	}))
 
 	if err == nil {
 		t.Error("Request passed when it was supposed to fail on redirect", err)
@@ -1245,7 +1253,7 @@ func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 
 func TestGetCustomRequestTimeout(t *testing.T) {
 	ro := &RequestOptions{RequestTimeout: 2 * time.Nanosecond}
-	if _, err := Get("http://httpbin.org", ro); err == nil {
+	if _, err := Get("http://httpbin.org", FromRequestOptions(ro)); err == nil {
 		t.Error("unexpected: successful connection")
 	}
 }
@@ -1255,7 +1263,7 @@ func TestGetCustomRequestTimeoutContext(t *testing.T) {
 	ctx, cancel := context.WithTimeout(derContext, time.Microsecond)
 	ro := &RequestOptions{Context: ctx}
 	cancel()
-	if _, err := Get("http://httpbin.org", ro); err == nil {
+	if _, err := Get("http://httpbin.org", FromRequestOptions(ro)); err == nil {
 		t.Error("unexpected: successful connection")
 	}
 }

@@ -113,14 +113,14 @@ func (r dataAndErrorBuffer) Read(p []byte) (n int, err error) {
 
 func TestBasicPostRequest(t *testing.T) {
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{Data: map[string]string{"One": "Two"}})
+		FromRequestOptions(&RequestOptions{Data: map[string]string{"One": "Two"}}))
 	verifyOkPostResponse(resp, t)
 
 }
 
 func TestBasicRegularPostRequest(t *testing.T) {
 	resp, err := Post("http://httpbin.org/post",
-		&RequestOptions{Data: map[string]string{"One": "Two"}})
+		FromRequestOptions(&RequestOptions{Data: map[string]string{"One": "Two"}}))
 
 	if err != nil {
 		t.Error("Cannot post: ", err)
@@ -132,8 +132,8 @@ func TestBasicRegularPostRequest(t *testing.T) {
 
 func TestBasicPostRequestInvalidURL(t *testing.T) {
 	resp, _ := Post("%../dir/",
-		&RequestOptions{Data: map[string]string{"One": "Two"},
-			Params: map[string]string{"1": "2"}})
+		FromRequestOptions(&RequestOptions{Data: map[string]string{"One": "Two"},
+			Params: map[string]string{"1": "2"}}))
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
@@ -142,7 +142,7 @@ func TestBasicPostRequestInvalidURL(t *testing.T) {
 }
 
 func TestBasicPostRequestInvalidURLNoParams(t *testing.T) {
-	resp, _ := Post("%../dir/", &RequestOptions{Data: map[string]string{"One": "Two"}})
+	resp, _ := Post("%../dir/", FromRequestOptions(&RequestOptions{Data: map[string]string{"One": "Two"}}))
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
@@ -161,7 +161,7 @@ func TestSessionPostRequestInvalidURLNoParams(t *testing.T) {
 
 func TestXMLPostRequestInvalidURL(t *testing.T) {
 	resp, _ := Post("%../dir/",
-		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
+		FromRequestOptions(&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}}))
 
 	if resp.Error == nil {
 		t.Error("Somehow the request went through")
@@ -181,7 +181,7 @@ func TestXMLSessionPostRequestInvalidURL(t *testing.T) {
 
 func TestBasicPostJsonRequestInvalidURL(t *testing.T) {
 	_, err := Post("%../dir/",
-		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
+		FromRequestOptions(&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true}))
 
 	if err == nil {
 		t.Error("Somehow the request went through")
@@ -201,7 +201,7 @@ func TestSessionPostJsonRequestInvalidURL(t *testing.T) {
 
 func TestBasicPostJsonRequestInvalidJSON(t *testing.T) {
 	resp, err := Post("http://httpbin.org/post",
-		&RequestOptions{JSON: math.NaN(), IsAjax: true})
+		FromRequestOptions(&RequestOptions{JSON: math.NaN(), IsAjax: true}))
 
 	if err == nil {
 		t.Error("Somehow the request went through")
@@ -229,7 +229,7 @@ func TestSessionPostJsonRequestInvalidJSON(t *testing.T) {
 
 func TestBasicPostJsonRequestInvalidXML(t *testing.T) {
 	resp, err := Post("http://httpbin.org/post",
-		&RequestOptions{XML: map[string]string{"One": "two"}, IsAjax: true})
+		FromRequestOptions(&RequestOptions{XML: map[string]string{"One": "two"}, IsAjax: true}))
 
 	if err == nil {
 		t.Error("Somehow the request went through")
@@ -266,10 +266,10 @@ func TestBasicPostRequestUploadInvalidURL(t *testing.T) {
 	defer fd[0].FileContents.Close()
 
 	resp, _ := Post("%../dir/",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: fd,
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if resp.Error == nil {
 		t.Fatal("Somehow able to make the request")
@@ -301,10 +301,10 @@ func TestSessionPostRequestUploadInvalidURL(t *testing.T) {
 func TestBasicPostRequestUploadInvalidFileUpload(t *testing.T) {
 
 	resp, _ := Post("%../dir/",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: []FileUpload{{FileName: `\x00%'"üfdsufhid\Ä\"D\\\"JS%25//'"H•\\\\'"¶•ªç∂\uf8\x8AKÔÓÔ`, FileContents: nil}},
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if resp.Error == nil {
 		t.Fatal("Somehow able to make the request")
@@ -326,7 +326,7 @@ func TestSessionPostRequestUploadInvalidFileUpload(t *testing.T) {
 
 func TestXMLPostRequest(t *testing.T) {
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}})
+		FromRequestOptions(&RequestOptions{XML: XMLPostMessage{Name: "Human", Age: 1, Height: 1}}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -360,7 +360,7 @@ func TestXMLPostRequestReaderBody(t *testing.T) {
 	}
 
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{RequestBody: bytes.NewReader(derBytes)})
+		FromRequestOptions(&RequestOptions{RequestBody: bytes.NewReader(derBytes)}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -390,7 +390,7 @@ func TestXMLMarshaledStringPostRequest(t *testing.T) {
 	xmlStruct := XMLPostMessage{Name: "Human", Age: 1, Height: 1}
 	encoded, _ := xml.Marshal(xmlStruct)
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{XML: string(encoded)})
+		FromRequestOptions(&RequestOptions{XML: string(encoded)}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -414,7 +414,7 @@ func TestXMLMarshaledBytesPostRequest(t *testing.T) {
 	xmlStruct := XMLPostMessage{Name: "Human", Age: 1, Height: 1}
 	encoded, _ := xml.Marshal(xmlStruct)
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{XML: encoded})
+		FromRequestOptions(&RequestOptions{XML: encoded}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -435,7 +435,7 @@ func TestXMLMarshaledBytesPostRequest(t *testing.T) {
 }
 
 func TestXMLNilPostRequest(t *testing.T) {
-	resp, _ := Post("http://httpbin.org/post", &RequestOptions{XML: nil})
+	resp, _ := Post("http://httpbin.org/post", FromRequestOptions(&RequestOptions{XML: nil}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -459,10 +459,10 @@ func TestBasicPostRequestUploadErrorReader(t *testing.T) {
 	var rd dataAndErrorBuffer
 	rd.err = fmt.Errorf("Random Error")
 	_, err := Post("http://httpbin.org/post",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: []FileUpload{{FileName: "Random.test", FileContents: rd}},
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if err == nil {
 		t.Error("Somehow our test didn't fail...")
@@ -473,10 +473,10 @@ func TestBasicPostRequestUploadErrorEOFReader(t *testing.T) {
 	var rd dataAndErrorBuffer
 	rd.err = io.EOF
 	_, err := Post("http://httpbin.org/post",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: []FileUpload{{FileName: "Random.test", FileContents: rd}},
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if err != nil {
 		t.Error("Somehow our test didn't fail... ", err)
@@ -492,10 +492,10 @@ func TestBasicPostRequestUpload(t *testing.T) {
 	}
 
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: fd,
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -549,10 +549,10 @@ func TestBasicPostRequestUploadWithMime(t *testing.T) {
 	}
 
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: []FileUpload{{FileContents: fd, FileMime: "text/plain"}},
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -611,10 +611,10 @@ func TestBasicPostRequestUploadMultipleFiles(t *testing.T) {
 	}
 
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{
+		FromRequestOptions(&RequestOptions{
 			Files: fd,
 			Data:  map[string]string{"One": "Two"},
-		})
+		}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -665,7 +665,7 @@ func TestBasicPostRequestUploadMultipleFiles(t *testing.T) {
 
 func TestBasicPostJsonBytesRequest(t *testing.T) {
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{JSON: []byte(`{"One":"Two"}`), IsAjax: true})
+		FromRequestOptions(&RequestOptions{JSON: []byte(`{"One":"Two"}`), IsAjax: true}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -717,7 +717,7 @@ func TestBasicPostJsonBytesRequest(t *testing.T) {
 
 func TestBasicPostJsonStringRequest(t *testing.T) {
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{JSON: `{"One":"Two"}`, IsAjax: true})
+		FromRequestOptions(&RequestOptions{JSON: `{"One":"Two"}`, IsAjax: true}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)
@@ -769,7 +769,7 @@ func TestBasicPostJsonStringRequest(t *testing.T) {
 
 func TestBasicPostJsonRequest(t *testing.T) {
 	resp, _ := Post("http://httpbin.org/post",
-		&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true})
+		FromRequestOptions(&RequestOptions{JSON: map[string]string{"One": "Two"}, IsAjax: true}))
 
 	if resp.Error != nil {
 		t.Fatal("Unable to make request", resp.Error)

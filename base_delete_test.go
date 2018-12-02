@@ -6,7 +6,7 @@ import (
 )
 
 func TestBasicDeleteRequest(t *testing.T) {
-	resp, err := Delete("http://httpbin.org/delete", nil)
+	resp, err := Delete("http://httpbin.org/delete")
 
 	if err != nil {
 		t.Error("Unable to make request", resp.Error)
