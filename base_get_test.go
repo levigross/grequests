@@ -247,7 +247,7 @@ func TestGetNoOptionsCustomClient(t *testing.T) {
 }
 
 func TestGetCustomTLSHandshakeTimeout(t *testing.T) {
-	ro := &RequestOptions{TLSHandshakeTimeout: 10 * time.Millisecond}
+	ro := &RequestOptions{TLSHandshakeTimeout: 10 * time.Nanosecond}
 	if _, err := Get("https://httpbin.org", FromRequestOptions(ro)); err == nil {
 		t.Error("unexpected: successful TLS Handshake")
 	}
@@ -544,10 +544,10 @@ func TestGetCustomUserAgentOld(t *testing.T) {
 }
 
 func TestGetCustomUserAgent(t *testing.T) {
-	resp, _ := Get("http://httpbin.org/get", UserAgent("leviBot 0.1"))
+	resp, _ := Get("http://httpbin.org/get", UserAgent("LeviBot 0.1"))
 	jsonResp := verifyOkResponse(resp, t)
 	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
-		t.Error("User agent header not properly set")
+		t.Error("User agent header not properly set", jsonResp.Headers.UserAgent)
 	}
 }
 

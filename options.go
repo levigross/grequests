@@ -15,7 +15,7 @@ func (o optionFunc) Apply(r *RequestOptions) {
 // requests
 func FromRequestOptions(r *RequestOptions) Option {
 	return optionFunc(func(ro *RequestOptions) {
-		ro = r
+		*ro = *r
 	})
 }
 

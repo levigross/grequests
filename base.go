@@ -5,7 +5,7 @@ package grequests
 // 	1. A URL
 // 	2. A varible number of options
 func Get(url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
+	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
 	}
@@ -17,7 +17,7 @@ func Get(url string, options ...Option) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Put(url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
+	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
 	}
@@ -29,7 +29,7 @@ func Put(url string, options ...Option) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Patch(url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
+	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
 	}
@@ -53,7 +53,7 @@ func Delete(url string, options ...Option) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Post(url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
+	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
 	}
@@ -65,7 +65,7 @@ func Post(url string, options ...Option) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Head(url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
+	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
 	}
@@ -77,7 +77,7 @@ func Head(url string, options ...Option) (*Response, error) {
 // 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Options(url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
+	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
 	}
@@ -90,7 +90,7 @@ func Options(url string, options ...Option) (*Response, error) {
 // 	3. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Req(verb string, url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
+	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
 	}
