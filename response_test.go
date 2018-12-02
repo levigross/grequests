@@ -1,6 +1,8 @@
 package grequests
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 )
@@ -14,13 +16,13 @@ func TestResponseOk(t *testing.T) {
 
 func verifyResponseOkForStatus(status int, t *testing.T) {
 	url := "http://httpbin.org/status/" + strconv.Itoa(status)
-	resp, err := Get(url, nil)
+	resp, err := Get(url)
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Errorf("Request did not return OK. Received status code %d rather a 2xx.", resp.StatusCode)
+		assert.Fail(t, fmt.Sprintf("Request did not return OK. Received status code %d rather a 2xx.", resp.StatusCode))
 	}
 }

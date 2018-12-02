@@ -66,7 +66,7 @@ type RequestOptions struct {
 	// UserAgent allows you to set an arbitrary custom user agent
 	UserAgent string
 
-	// Host allows you to set an arbitrary custom host
+	// Host allows you to set an arbitrary host
 	Host string
 
 	// Auth allows you to specify a user name and password that you wish to
@@ -99,7 +99,7 @@ type RequestOptions struct {
 	// a connect to complete.
 	DialTimeout time.Duration
 
-	// KeepAlive specifies the keep-alive period for an active
+	// DialKeepAlive specifies the keep-alive period for an active
 	// network connection. If zero, keep-alive are not enabled.
 	DialKeepAlive time.Duration
 
