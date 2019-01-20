@@ -87,7 +87,7 @@ In the code below, once the file is downloaded – the `Response` struct no long
 response := Get("http://some-wonderful-file.txt")
 
 if err := response.DownloadToFile("randomFile"); err != nil {
-	log.Println("Unable to download file: ", err)
+    log.Println("Unable to download file: ", err)
 }
 
 // At this point the .String and .Bytes method will return empty responses

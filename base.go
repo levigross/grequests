@@ -3,93 +3,65 @@ package grequests
 
 // Get takes 2 parameters and returns a Response Struct. These two options are:
 // 	1. A URL
-// 	2. A varible number of options
+// 	2. A set of options for the request
 func Get(url string, options ...Option) (*Response, error) {
-	ro := &RequestOptions{}
-	for _, opt := range options {
-		opt.Apply(ro)
-	}
-	return DoRegularRequest("GET", url, ro)
+	return Request("GET", url, options...)
 }
 
 // Put takes 2 parameters and returns a Response struct. These two options are:
 // 	1. A URL
-// 	2. A RequestOptions struct
+// 	2. A set of options for the request
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Put(url string, options ...Option) (*Response, error) {
-	ro := &RequestOptions{}
-	for _, opt := range options {
-		opt.Apply(ro)
-	}
-	return DoRegularRequest("PUT", url, ro)
+	return Request("PUT", url, options...)
 }
 
 // Patch takes 2 parameters and returns a Response struct. These two options are:
 // 	1. A URL
-// 	2. A RequestOptions struct
+// 	2. A set of options for the request
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Patch(url string, options ...Option) (*Response, error) {
-	ro := &RequestOptions{}
-	for _, opt := range options {
-		opt.Apply(ro)
-	}
-	return DoRegularRequest("PATCH", url, ro)
+	return Request("PATCH", url, options...)
 }
 
 // Delete takes 2 parameters and returns a Response struct. These two options are:
 // 	1. A URL
-// 	2. A RequestOptions struct
+// 	2. A set of options for the request
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Delete(url string, options ...Option) (*Response, error) {
-	var ro *RequestOptions
-	for _, opt := range options {
-		opt.Apply(ro)
-	}
-	return DoRegularRequest("DELETE", url, ro)
+	return Request("DELETE", url, options...)
 }
 
 // Post takes 2 parameters and returns a Response channel. These two options are:
 // 	1. A URL
-// 	2. A RequestOptions struct
+// 	2. A set of options for the request
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Post(url string, options ...Option) (*Response, error) {
-	ro := &RequestOptions{}
-	for _, opt := range options {
-		opt.Apply(ro)
-	}
-	return DoRegularRequest("POST", url, ro)
+	return Request("POST", url, options...)
 }
 
 // Head takes 2 parameters and returns a Response channel. These two options are:
 // 	1. A URL
-// 	2. A RequestOptions struct
+// 	2. A set of options for the request
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Head(url string, options ...Option) (*Response, error) {
-	ro := &RequestOptions{}
-	for _, opt := range options {
-		opt.Apply(ro)
-	}
-	return DoRegularRequest("HEAD", url, ro)
+	return Request("HEAD", url, options...)
 }
 
 // Options takes 2 parameters and returns a Response struct. These two options are:
 // 	1. A URL
-// 	2. A RequestOptions struct
+// 	2. A set of options for the request
 // If you do not intend to use the `RequestOptions` you can just pass nil
 func Options(url string, options ...Option) (*Response, error) {
-	ro := &RequestOptions{}
-	for _, opt := range options {
-		opt.Apply(ro)
-	}
-	return DoRegularRequest("OPTIONS", url, ro)
+	return Request("OPTIONS", url, options...)
 }
 
-// Req takes 3 parameters and returns a Response Struct. These three options are:
+// Request takes 3 parameters and returns a Response Struct. These three options are:
 //	1. A verb
 // 	2. A URL
-// 	3. A RequestOptions struct
+// 	3. A set of options for the request
 // If you do not intend to use the `RequestOptions` you can just pass nil
-func Req(verb string, url string, options ...Option) (*Response, error) {
+func Request(verb string, url string, options ...Option) (*Response, error) {
 	ro := &RequestOptions{}
 	for _, opt := range options {
 		opt.Apply(ro)
