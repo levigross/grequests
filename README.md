@@ -31,8 +31,8 @@ Basic Examples
 Basic GET request:
 
 ```go
-resp, err := grequests.Get("http://httpbin.org/get")
-// You can modify the request by passing an optional RequestOptions struct
+resp, err := grequests.Get("http://httpbin.org/get", UserAgent("Foo User"), DisableCompression())
+// You can modify the request by passing an optional Options functions
 
 if err != nil {
 	log.Fatalln("Unable to make request: ", err)

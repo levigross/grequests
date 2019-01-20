@@ -233,7 +233,7 @@ func TestGetRequestHook(t *testing.T) {
 		return nil
 	}
 	resp, _ := Get("http://httpbin.org/get",
-		FromRequestOptions(&RequestOptions{BeforeRequest: addHelloWorld}))
+		BeforeRequest(addHelloWorld))
 	j := verifyOkResponse(resp, t)
 	if j.Headers.Hello != "World" {
 		t.Error("Hook Function failed")
@@ -242,20 +242,18 @@ func TestGetRequestHook(t *testing.T) {
 
 func TestGetNoOptionsCustomClient(t *testing.T) {
 	resp, _ := Get("http://httpbin.org/get",
-		FromRequestOptions(&RequestOptions{HTTPClient: http.DefaultClient}))
+		HTTPClient(http.DefaultClient))
 	verifyOkResponse(resp, t)
 }
 
 func TestGetCustomTLSHandshakeTimeout(t *testing.T) {
-	ro := &RequestOptions{TLSHandshakeTimeout: 10 * time.Nanosecond}
-	if _, err := Get("https://httpbin.org", FromRequestOptions(ro)); err == nil {
+	if _, err := Get("https://httpbin.org", TLSHandshakeTimeout(time.Nanosecond)); err == nil {
 		t.Error("unexpected: successful TLS Handshake")
 	}
 }
 
 func TestGetCustomDialTimeout(t *testing.T) {
-	ro := &RequestOptions{DialTimeout: time.Nanosecond}
-	if _, err := Get("http://httpbin.org", FromRequestOptions(ro)); err == nil {
+	if _, err := Get("http://httpbin.org", DialTimeout(time.Nanosecond)); err == nil {
 		t.Error("unexpected: successful connection")
 	}
 }
@@ -279,8 +277,8 @@ func TestGetProxy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	resp, err := Head(ts.URL, FromRequestOptions(&RequestOptions{Proxies: map[string]*url.URL{pu.Scheme: pu}}))
+	pm := map[string]*url.URL{pu.Scheme: pu}
+	resp, err := Head(ts.URL, Proxies(pm))
 
 	defer http.DefaultTransport.(*http.Transport).CloseIdleConnections()
 
@@ -300,7 +298,8 @@ func TestGetProxy(t *testing.T) {
 }
 
 func TestGetSyncInvalidProxyScheme(t *testing.T) {
-	resp, err := Get("http://httpbin.org/get", FromRequestOptions(&RequestOptions{Proxies: map[string]*url.URL{"gopher": nil}}))
+	resp, err := Get("http://httpbin.org/get",
+		Proxies(map[string]*url.URL{"gopher": nil}))
 	if err != nil {
 		t.Error("Request failed: ", err)
 	}
@@ -324,19 +323,17 @@ func TestGetNoOptionsGzip(t *testing.T) {
 
 func TestGetWithCookies(t *testing.T) {
 	resp, err := Get("http://httpbin.org/cookies",
-		FromRequestOptions(&RequestOptions{
-			Cookies: []*http.Cookie{
-				{
-					Name:     "TestCookie",
-					Value:    "Random Value",
-					HttpOnly: true,
-					Secure:   false,
-				}, {
-					Name:     "AnotherCookie",
-					Value:    "Some Value",
-					HttpOnly: true,
-					Secure:   false,
-				},
+		Cookies([]*http.Cookie{
+			{
+				Name:     "TestCookie",
+				Value:    "Random Value",
+				HttpOnly: true,
+				Secure:   false,
+			}, {
+				Name:     "AnotherCookie",
+				Value:    "Some Value",
+				HttpOnly: true,
+				Secure:   false,
 			},
 		}))
 
@@ -366,21 +363,18 @@ func TestGetWithCookies(t *testing.T) {
 
 func TestGetWithCookiesCustomCookieJar(t *testing.T) {
 	cookieJar, _ := cookiejar.New(nil)
-	resp, err := Get("http://httpbin.org/cookies",
-		FromRequestOptions(&RequestOptions{
-			CookieJar: cookieJar,
-			Cookies: []*http.Cookie{
-				{
-					Name:     "TestCookie",
-					Value:    "Random Value",
-					HttpOnly: true,
-					Secure:   false,
-				}, {
-					Name:     "AnotherCookie",
-					Value:    "Some Value",
-					HttpOnly: true,
-					Secure:   false,
-				},
+	resp, err := Get("http://httpbin.org/cookies", CookieJar(cookieJar),
+		Cookies([]*http.Cookie{
+			{
+				Name:     "TestCookie",
+				Value:    "Random Value",
+				HttpOnly: true,
+				Secure:   false,
+			}, {
+				Name:     "AnotherCookie",
+				Value:    "Some Value",
+				HttpOnly: true,
+				Secure:   false,
 			},
 		}))
 
@@ -482,7 +476,8 @@ func xmlASCIIDecoder(charset string, input io.Reader) (io.Reader, error) {
 }
 
 func TestGetInvalidURL(t *testing.T) {
-	resp, err := Get("%../dir/", FromRequestOptions(&RequestOptions{Params: map[string]string{"1": "2"}}))
+	resp, err := Get("%../dir/",
+		FromRequestOptions(&RequestOptions{Params: map[string]string{"1": "2"}}))
 
 	if err == nil {
 		t.Error("Some how the request was valid to make request", err)
@@ -535,8 +530,7 @@ func TestGetXMLSerialize(t *testing.T) {
 }
 
 func TestGetCustomUserAgentOld(t *testing.T) {
-	ro := &RequestOptions{UserAgent: "LeviBot 0.1"}
-	resp, _ := Get("http://httpbin.org/get", FromRequestOptions(ro))
+	resp, _ := Get("http://httpbin.org/get", UserAgent("LeviBot 0.1"))
 	jsonResp := verifyOkResponse(resp, t)
 	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
 		t.Error("User agent header not properly set")
@@ -552,8 +546,7 @@ func TestGetCustomUserAgent(t *testing.T) {
 }
 
 func TestGetBasicAuth(t *testing.T) {
-	ro := &RequestOptions{Auth: []string{"Levi", "Bot"}}
-	resp, err := Get("http://httpbin.org/get", FromRequestOptions(ro))
+	resp, err := Get("http://httpbin.org/get", BasicAuth("Levi", "Bot"))
 	// Not the usual JSON so copy and paste from below
 
 	if err != nil {
@@ -604,13 +597,12 @@ func TestGetCustomHeader(t *testing.T) {
 }
 
 func TestGetInvalidSSLCertNoVerify(t *testing.T) {
-	ro := &RequestOptions{InsecureSkipVerify: true}
 	for _, badSSL := range []string{
 		"https://self-signed.badssl.com/",
 		"https://expired.badssl.com/",
 		"https://wrong.host.badssl.com/",
 	} {
-		resp, err := Get(badSSL, FromRequestOptions(ro))
+		resp, err := Get(badSSL, DisableTLSCertValidation())
 		if err != nil {
 			t.Error("Unable to make request", err)
 		}
@@ -639,8 +631,7 @@ func TestGetInvalidSSLCertNoVerifyNoOptions(t *testing.T) {
 }
 
 func TestGetInvalidSSLCertNoCompression(t *testing.T) {
-	ro := &RequestOptions{UserAgent: "LeviBot 0.1", DisableCompression: true}
-	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
+	resp, err := Get("https://self-signed.badssl.com/", DisableCompression(), UserAgent("LeviBot 0.1"))
 
 	if err == nil {
 		t.Error("SSL verification worked when it shouldn't of", err)
@@ -723,7 +714,9 @@ func TestErrorResponseNOOP(t *testing.T) {
 }
 
 func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
-	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: true}
+	ro := &RequestOptions{UserAgent: "LeviBot 0.1",
+		InsecureSkipVerify: true,
+		DisableCompression: true}
 	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err != nil {
@@ -737,7 +730,8 @@ func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
 }
 
 func TestGetInvalidSSLCertWithCompressionNoVerify(t *testing.T) {
-	ro := &RequestOptions{UserAgent: "LeviBot 0.1", InsecureSkipVerify: true, DisableCompression: false}
+	ro := &RequestOptions{UserAgent: "LeviBot 0.1",
+		InsecureSkipVerify: true, DisableCompression: false}
 	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err != nil {
