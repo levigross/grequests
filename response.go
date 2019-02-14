@@ -30,6 +30,8 @@ type Response struct {
 	Header http.Header
 
 	internalByteBuffer *bytes.Buffer
+
+	Request *http.Request
 }
 
 func buildResponse(resp *http.Response, err error) (*Response, error) {
@@ -46,6 +48,7 @@ func buildResponse(resp *http.Response, err error) (*Response, error) {
 		StatusCode:         resp.StatusCode,
 		Header:             resp.Header,
 		internalByteBuffer: bytes.NewBuffer([]byte{}),
+		Request:            resp.Request,
 	}
 	// EnsureResponseFinalized(goodResp) This will come back in 1.0
 	return goodResp, nil
