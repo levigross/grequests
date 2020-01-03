@@ -120,6 +120,22 @@ type RequestOptions struct {
 	// globally by modifying the `RedirectLimit` variable.
 	RedirectLimit int
 
+	// MaxIdleConns controls the maximum number of idle (keep-alive)
+	// connections across all hosts. Zero means no limit.
+	MaxIdleConns int
+
+	// MaxIdleConnsPerHost, if non-zero, controls the maximum idle
+	// (keep-alive) connections to keep per-host. If zero,
+	// DefaultMaxIdleConnsPerHost is used.
+	MaxIdleConnsPerHost int
+
+	// MaxConnsPerHost optionally limits the total number of
+	// connections per host, including connections in the dialing,
+	// active, and idle states. On limit violation, dials will block.
+	//
+	// Zero means no limit.
+	MaxConnsPerHost int
+
 	// RequestBody allows you to put anything matching an `io.Reader` into the request
 	// this option will take precedence over any other request option specified
 	RequestBody io.Reader
@@ -445,6 +461,9 @@ func (ro RequestOptions) dontUseDefaultClient() bool {
 	case ro.UseCookieJar != false:
 	case ro.RequestTimeout != 0:
 	case ro.LocalAddr != nil:
+	case ro.MaxIdleConns != 0:
+	case ro.MaxIdleConnsPerHost != 0:
+	case ro.MaxConnsPerHost != 0:
 	default:
 		return false
 	}
@@ -511,7 +530,9 @@ func createHTTPTransport(ro RequestOptions) *http.Transport {
 			LocalAddr: ro.LocalAddr,
 		}).Dial,
 		TLSHandshakeTimeout: ro.TLSHandshakeTimeout,
-
+		MaxIdleConns:        ro.MaxIdleConns,
+		MaxIdleConnsPerHost: ro.MaxIdleConnsPerHost,
+		MaxConnsPerHost:     ro.MaxConnsPerHost,
 		// Here comes the user settings
 		TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
 		DisableCompression: ro.DisableCompression,
