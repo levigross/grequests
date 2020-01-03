@@ -120,6 +120,13 @@ type RequestOptions struct {
 	// globally by modifying the `RedirectLimit` variable.
 	RedirectLimit int
 
+	// DisableKeepAlives, if true, disables HTTP keep-alives and
+	// will only use the connection to the server for a single
+	// HTTP request.
+	//
+	// This is unrelated to the similarly named TCP keep-alives.
+	DisableKeepAlives bool
+
 	// MaxIdleConns controls the maximum number of idle (keep-alive)
 	// connections across all hosts. Zero means no limit.
 	MaxIdleConns int
@@ -464,6 +471,7 @@ func (ro RequestOptions) dontUseDefaultClient() bool {
 	case ro.MaxIdleConns != 0:
 	case ro.MaxIdleConnsPerHost != 0:
 	case ro.MaxConnsPerHost != 0:
+	case ro.DisableKeepAlives == true:
 	default:
 		return false
 	}
@@ -533,6 +541,7 @@ func createHTTPTransport(ro RequestOptions) *http.Transport {
 		MaxIdleConns:        ro.MaxIdleConns,
 		MaxIdleConnsPerHost: ro.MaxIdleConnsPerHost,
 		MaxConnsPerHost:     ro.MaxConnsPerHost,
+		DisableKeepAlives:   ro.DisableKeepAlives,
 		// Here comes the user settings
 		TLSClientConfig:    &tls.Config{InsecureSkipVerify: ro.InsecureSkipVerify},
 		DisableCompression: ro.DisableCompression,
