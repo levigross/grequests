@@ -37,7 +37,7 @@ type RequestOptions struct {
 	Params map[string]string
 
 	// QueryStruct is a struct that encapsulates a set of URL query params
-	// this paramter is mutually exclusive with `Params map[string]string` (they cannot be combined)
+	// this parameter is mutually exclusive with `Params map[string]string` (they cannot be combined)
 	// for more information please see https://godoc.org/github.com/google/go-querystring/query
 	QueryStruct interface{}
 
