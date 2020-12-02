@@ -22,7 +22,7 @@ import (
 	"github.com/google/go-querystring/query"
 
 	"context"
-
+	"golang.org/x/net/http2"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -138,6 +138,9 @@ type RequestOptions struct {
 
 	// LocalAddr allows you to send the request on any local interface
 	LocalAddr *net.TCPAddr
+
+	// H2 make http/2.0 request
+	H2 bool
 }
 
 // DoRegularRequest adds generic test functionality
@@ -517,6 +520,9 @@ func createHTTPTransport(ro RequestOptions) *http.Transport {
 		DisableCompression: ro.DisableCompression,
 	}
 	EnsureTransporterFinalized(ourHTTPTransport)
+	if ro.H2 {
+		http2.ConfigureTransport(ourHTTPTransport)
+	}
 	return ourHTTPTransport
 }
 
@@ -607,3 +613,4 @@ func buildURLStruct(userURL string, URLStruct interface{}) (string, error) {
 
 	return addQueryParams(parsedURL, parsedQuery), nil
 }
+
