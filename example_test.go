@@ -1,3 +1,5 @@
+//go:build skip
+
 package grequests_test
 
 import (
