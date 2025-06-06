@@ -26,6 +26,7 @@ func TestBasicOPTIONSRequest(t *testing.T) {
 	assert.True(t, resp.Ok, "OPTIONS request did not return success: ", resp.StatusCode)
 	assert.Equal(t, 200, resp.StatusCode, "OPTIONS request status code should be 200")
 
+
 	// Standard library http.ServeMux usually returns an "Allow" header for OPTIONS.
 	// It would list methods handled by the mux for that path.
 	// Our /get path is handled by a specific function in httpbin_test_server.go.
@@ -60,13 +61,16 @@ func TestOptionsSession(t *testing.T) {
 	// We expect the standard OPTIONS response, not a redirect or cookie setting.
 	assert.NotEmpty(t, resp.Header.Get("Allow"), "Allow header missing on OPTIONS to /cookies/set")
 
+
 	resp, err = session.Options(httpbinURL+"/cookies/set", &RequestOptions{Params: map[string]string{"two": "three"}})
 	assert.NoError(t, err, "OPTIONS request to /cookies/set failed for 'two'")
 	assert.True(t, resp.Ok, "OPTIONS request to /cookies/set for 'two' did not return OK. Status: ", resp.StatusCode)
 
+
 	resp, err = session.Options(httpbinURL+"/cookies/set", &RequestOptions{Params: map[string]string{"three": "four"}})
 	assert.NoError(t, err, "OPTIONS request to /cookies/set failed for 'three'")
 	assert.True(t, resp.Ok, "OPTIONS request to /cookies/set for 'three' did not return OK. Status: ", resp.StatusCode)
+
 
 	parsedURL, err := url.Parse(httpbinURL)
 	if err != nil {

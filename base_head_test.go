@@ -51,6 +51,7 @@ func TestBasicHeadRequestNoContent(t *testing.T) {
 	assert.Equal(t, 204, resp.StatusCode, "HEAD request to /status/204 did not return 204")
 	assert.True(t, resp.Ok, "HEAD request did not return success classification for 204")
 
+
 	// Content-Type for 204 responses is typically not set or empty.
 	// Our /status/:code handler might set one based on fmt.Fprintf.
 	// However, for 204, the body is empty.
@@ -58,6 +59,7 @@ func TestBasicHeadRequestNoContent(t *testing.T) {
 	// For a HEAD request, this body should be omitted.
 	// Content-Length should be 0.
 	assert.Equal(t, "0", resp.Header.Get("Content-Length"), "Content-Length should be 0 for HEAD to 204")
+
 
 	if resp.Bytes() != nil && len(resp.Bytes()) > 0 { // Allow nil or empty byte slice
 		assert.Fail(t, "Somehow byte buffer is working now (bytes)", resp.Bytes())
@@ -83,13 +85,16 @@ func TestHeadSession(t *testing.T) {
 	// /cookies returns 200 OK.
 	assert.True(t, resp.Ok, "Request to set cookie 'one' did not return OK. Status: ", resp.StatusCode)
 
+
 	resp, err = session.Head(httpbinURL+"/cookies/set", &RequestOptions{Params: map[string]string{"two": "three"}})
 	assert.NoError(t, err, "Cannot set cookie 'two' via HEAD")
 	assert.True(t, resp.Ok, "Request to set cookie 'two' did not return OK. Status: ", resp.StatusCode)
 
+
 	resp, err = session.Head(httpbinURL+"/cookies/set", &RequestOptions{Params: map[string]string{"three": "four"}})
 	assert.NoError(t, err, "Cannot set cookie 'three' via HEAD")
 	assert.True(t, resp.Ok, "Request to set cookie 'three' did not return OK. Status: ", resp.StatusCode)
+
 
 	parsedURL, err := url.Parse(httpbinURL)
 	if err != nil {

@@ -61,9 +61,8 @@ func (s *Session) combineRequestOptions(ro *RequestOptions) *RequestOptions {
 }
 
 // Get takes 2 parameters and returns a Response Struct. These two options are:
-//  1. A URL
-//  2. A RequestOptions struct
-//
+// 	1. A URL
+// 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
 func (s *Session) Get(url string, ro *RequestOptions) (*Response, error) {
@@ -72,9 +71,8 @@ func (s *Session) Get(url string, ro *RequestOptions) (*Response, error) {
 }
 
 // Put takes 2 parameters and returns a Response struct. These two options are:
-//  1. A URL
-//  2. A RequestOptions struct
-//
+// 	1. A URL
+// 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
 func (s *Session) Put(url string, ro *RequestOptions) (*Response, error) {
@@ -83,9 +81,8 @@ func (s *Session) Put(url string, ro *RequestOptions) (*Response, error) {
 }
 
 // Patch takes 2 parameters and returns a Response struct. These two options are:
-//  1. A URL
-//  2. A RequestOptions struct
-//
+// 	1. A URL
+// 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
 func (s *Session) Patch(url string, ro *RequestOptions) (*Response, error) {
@@ -94,9 +91,8 @@ func (s *Session) Patch(url string, ro *RequestOptions) (*Response, error) {
 }
 
 // Delete takes 2 parameters and returns a Response struct. These two options are:
-//  1. A URL
-//  2. A RequestOptions struct
-//
+// 	1. A URL
+// 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
 func (s *Session) Delete(url string, ro *RequestOptions) (*Response, error) {
@@ -105,9 +101,8 @@ func (s *Session) Delete(url string, ro *RequestOptions) (*Response, error) {
 }
 
 // Post takes 2 parameters and returns a Response channel. These two options are:
-//  1. A URL
-//  2. A RequestOptions struct
-//
+// 	1. A URL
+// 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
 func (s *Session) Post(url string, ro *RequestOptions) (*Response, error) {
@@ -116,9 +111,8 @@ func (s *Session) Post(url string, ro *RequestOptions) (*Response, error) {
 }
 
 // Head takes 2 parameters and returns a Response channel. These two options are:
-//  1. A URL
-//  2. A RequestOptions struct
-//
+// 	1. A URL
+// 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
 func (s *Session) Head(url string, ro *RequestOptions) (*Response, error) {
@@ -127,9 +121,8 @@ func (s *Session) Head(url string, ro *RequestOptions) (*Response, error) {
 }
 
 // Options takes 2 parameters and returns a Response struct. These two options are:
-//  1. A URL
-//  2. A RequestOptions struct
-//
+// 	1. A URL
+// 	2. A RequestOptions struct
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
 func (s *Session) Options(url string, ro *RequestOptions) (*Response, error) {

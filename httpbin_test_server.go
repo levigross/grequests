@@ -1,4 +1,4 @@
-package grequests
+package main
 
 import (
 	"compress/flate"
@@ -214,9 +214,9 @@ func createHttpbinTestServer() *httptest.Server {
 				// For some codes like 204, 304, writing a body is not allowed.
 				// http.ResponseWriter handles this automatically if we just call WriteHeader.
 				if http.StatusText(code) == "" { // Invalid code not in standard library
-					http.Error(w, fmt.Sprintf("Invalid status code: %d", code), http.StatusBadRequest)
-					return
-				}
+                     http.Error(w, fmt.Sprintf("Invalid status code: %d", code), http.StatusBadRequest)
+                     return
+                }
 
 				if code == http.StatusNoContent || code == http.StatusNotModified {
 					w.WriteHeader(code)
