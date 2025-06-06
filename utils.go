@@ -105,3 +105,34 @@ func EnsureTransporterFinalized(httpTransport *http.Transport) {
 // 	})
 // }
 // This will come back in 1.0
+
+// containsString checks if a string is present in a slice of strings.
+// This is case-sensitive.
+func containsString(str string, slice []string) bool {
+	for _, v := range slice {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
+
+// isStringInSlice checks if a string is present in a slice of strings.
+// This is an alias for containsString for clarity in certain contexts.
+// This is case-sensitive.
+func isStringInSlice(str string, slice []string) bool {
+	return containsString(str, slice)
+}
+
+// isRedirect checks if a given HTTP status code is a redirect code.
+func isRedirect(statusCode int) bool {
+	switch statusCode {
+	case http.StatusMovedPermanently, // 301
+		http.StatusFound,              // 302
+		http.StatusSeeOther,           // 303
+		http.StatusTemporaryRedirect,  // 307
+		http.StatusPermanentRedirect:  // 308
+		return true
+	}
+	return false
+}

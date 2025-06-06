@@ -335,7 +335,9 @@ func createMultiPartPostRequest(httpMethod, userURL string, ro *RequestOptions) 
 
 	// Populate the other parts of the form (if there are any)
 	for key, value := range ro.Data {
-		multipartWriter.WriteField(key, value)
+		if err := multipartWriter.WriteField(key, value); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := multipartWriter.Close(); err != nil {
@@ -435,14 +437,14 @@ func (ro RequestOptions) proxySettings(req *http.Request) (*url.URL, error) {
 // 9. Do you want to set a custom LocalAddr to send the request from
 func (ro RequestOptions) dontUseDefaultClient() bool {
 	switch {
-	case ro.InsecureSkipVerify == true:
-	case ro.DisableCompression == true:
+	case ro.InsecureSkipVerify:
+	case ro.DisableCompression:
 	case len(ro.Proxies) != 0:
 	case ro.TLSHandshakeTimeout != 0:
 	case ro.DialTimeout != 0:
 	case ro.DialKeepAlive != 0:
 	case len(ro.Cookies) != 0:
-	case ro.UseCookieJar != false:
+	case ro.UseCookieJar:
 	case ro.RequestTimeout != 0:
 	case ro.LocalAddr != nil:
 	default:
@@ -566,7 +568,7 @@ func addHTTPHeaders(ro *RequestOptions, req *http.Request) {
 		req.SetBasicAuth(ro.Auth[0], ro.Auth[1])
 	}
 
-	if ro.IsAjax == true {
+	if ro.IsAjax {
 		req.Header.Set("X-Requested-With", "XMLHttpRequest")
 	}
 }

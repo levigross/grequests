@@ -279,7 +279,7 @@ func Example_postXML() {
 
 func Example_postFileUpload() {
 
-	fd, err := grequests.FileUploadFromDisk("test_files/mypassword")
+	fd, err := grequests.FileUploadFromDisk("testdata/mypassword")
 
 	if err != nil {
 		log.Println("Unable to open file: ", err)

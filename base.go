@@ -64,7 +64,9 @@ func Options(url string, options ...Option) (*Response, error) {
 func Request(verb string, url string, options ...Option) (*Response, error) {
 	ro := &RequestOptions{}
 	for _, opt := range options {
-		opt.Apply(ro)
+		if opt != nil {
+			opt.Apply(ro)
+		}
 	}
 	return DoRegularRequest(verb, url, ro)
 }

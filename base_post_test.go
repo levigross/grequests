@@ -345,7 +345,7 @@ func TestXMLPostRequest(t *testing.T) {
 
 	myXMLStruct := &XMLPostMessage{}
 
-	xml.Unmarshal([]byte(myJSONStruct.Data), myXMLStruct)
+	_ = xml.Unmarshal([]byte(myJSONStruct.Data), myXMLStruct)
 
 	if myXMLStruct.Age != 1 {
 		assert.Fail(t, fmt.Sprintf("Unable to serialize XML response from within JSON %#v", myXMLStruct))
@@ -379,7 +379,7 @@ func TestXMLPostRequestReaderBody(t *testing.T) {
 
 	myXMLStruct := &XMLPostMessage{}
 
-	xml.Unmarshal([]byte(myJSONStruct.Data), myXMLStruct)
+	_ = xml.Unmarshal([]byte(myJSONStruct.Data), myXMLStruct)
 
 	if myXMLStruct.Age != 1 {
 		assert.Fail(t, fmt.Sprintf("Unable to serialize XML response from within JSON %#v", myXMLStruct))
