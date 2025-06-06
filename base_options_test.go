@@ -1,6 +1,7 @@
 package grequests
 
 import (
+	"context"
 	"net/url"
 	"testing"
 
@@ -15,7 +16,7 @@ func (s *OptionsSuite) TestOPTIONSRequest() {
 	srv := newOptionsServer()
 	defer srv.Close()
 
-	resp, err := Options(srv.URL)
+	resp, err := Options(context.Background(), srv.URL)
 	s.Require().NoError(err)
 	s.True(resp.Ok)
 	s.Equal("GET, POST, PUT, DELETE, PATCH, OPTIONS", resp.Header.Get("Access-Control-Allow-Methods"))
@@ -26,11 +27,11 @@ func (s *OptionsSuite) TestOptionsSessionCookies() {
 	defer srv.Close()
 
 	session := NewSession(nil)
-	_, err := session.Options(srv.URL+"?one=two", &RequestOptions{})
+	_, err := session.Options(context.Background(), srv.URL+"?one=two", &RequestOptions{})
 	s.Require().NoError(err)
-	_, err = session.Options(srv.URL+"?two=three", &RequestOptions{})
+	_, err = session.Options(context.Background(), srv.URL+"?two=three", &RequestOptions{})
 	s.Require().NoError(err)
-	_, err = session.Options(srv.URL+"?three=four", &RequestOptions{})
+	_, err = session.Options(context.Background(), srv.URL+"?three=four", &RequestOptions{})
 	s.Require().NoError(err)
 
 	cookieURL, err := url.Parse(srv.URL)
@@ -40,7 +41,7 @@ func (s *OptionsSuite) TestOptionsSessionCookies() {
 
 func (s *OptionsSuite) TestOptionsInvalidURLSession() {
 	session := NewSession(nil)
-	_, err := session.Options("%../dir/", nil)
+	_, err := session.Options(context.Background(), "%../dir/", nil)
 	s.Error(err)
 }
 

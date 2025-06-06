@@ -1,6 +1,9 @@
 package grequests
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 // Session allows a user to make use of persistent cookies in between
 // HTTP requests
@@ -61,72 +64,100 @@ func (s *Session) combineRequestOptions(ro *RequestOptions) *RequestOptions {
 }
 
 // Get takes 2 parameters and returns a Response Struct. These two options are:
-// 	1. A URL
-// 	2. A RequestOptions struct
+//  1. A URL
+//  2. A RequestOptions struct
+//
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
-func (s *Session) Get(url string, ro *RequestOptions) (*Response, error) {
+func (s *Session) Get(ctx context.Context, url string, ro *RequestOptions) (*Response, error) {
 	ro = s.combineRequestOptions(ro)
+	if ctx != nil {
+		ro.Context = ctx
+	}
 	return doSessionRequest("GET", url, ro, s.HTTPClient)
 }
 
 // Put takes 2 parameters and returns a Response struct. These two options are:
-// 	1. A URL
-// 	2. A RequestOptions struct
+//  1. A URL
+//  2. A RequestOptions struct
+//
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
-func (s *Session) Put(url string, ro *RequestOptions) (*Response, error) {
+func (s *Session) Put(ctx context.Context, url string, ro *RequestOptions) (*Response, error) {
 	ro = s.combineRequestOptions(ro)
+	if ctx != nil {
+		ro.Context = ctx
+	}
 	return doSessionRequest("PUT", url, ro, s.HTTPClient)
 }
 
 // Patch takes 2 parameters and returns a Response struct. These two options are:
-// 	1. A URL
-// 	2. A RequestOptions struct
+//  1. A URL
+//  2. A RequestOptions struct
+//
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
-func (s *Session) Patch(url string, ro *RequestOptions) (*Response, error) {
+func (s *Session) Patch(ctx context.Context, url string, ro *RequestOptions) (*Response, error) {
 	ro = s.combineRequestOptions(ro)
+	if ctx != nil {
+		ro.Context = ctx
+	}
 	return doSessionRequest("PATCH", url, ro, s.HTTPClient)
 }
 
 // Delete takes 2 parameters and returns a Response struct. These two options are:
-// 	1. A URL
-// 	2. A RequestOptions struct
+//  1. A URL
+//  2. A RequestOptions struct
+//
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
-func (s *Session) Delete(url string, ro *RequestOptions) (*Response, error) {
+func (s *Session) Delete(ctx context.Context, url string, ro *RequestOptions) (*Response, error) {
 	ro = s.combineRequestOptions(ro)
+	if ctx != nil {
+		ro.Context = ctx
+	}
 	return doSessionRequest("DELETE", url, ro, s.HTTPClient)
 }
 
 // Post takes 2 parameters and returns a Response channel. These two options are:
-// 	1. A URL
-// 	2. A RequestOptions struct
+//  1. A URL
+//  2. A RequestOptions struct
+//
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
-func (s *Session) Post(url string, ro *RequestOptions) (*Response, error) {
+func (s *Session) Post(ctx context.Context, url string, ro *RequestOptions) (*Response, error) {
 	ro = s.combineRequestOptions(ro)
+	if ctx != nil {
+		ro.Context = ctx
+	}
 	return doSessionRequest("POST", url, ro, s.HTTPClient)
 }
 
 // Head takes 2 parameters and returns a Response channel. These two options are:
-// 	1. A URL
-// 	2. A RequestOptions struct
+//  1. A URL
+//  2. A RequestOptions struct
+//
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
-func (s *Session) Head(url string, ro *RequestOptions) (*Response, error) {
+func (s *Session) Head(ctx context.Context, url string, ro *RequestOptions) (*Response, error) {
 	ro = s.combineRequestOptions(ro)
+	if ctx != nil {
+		ro.Context = ctx
+	}
 	return doSessionRequest("HEAD", url, ro, s.HTTPClient)
 }
 
 // Options takes 2 parameters and returns a Response struct. These two options are:
-// 	1. A URL
-// 	2. A RequestOptions struct
+//  1. A URL
+//  2. A RequestOptions struct
+//
 // If you do not intend to use the `RequestOptions` you can just pass nil
 // A new session is created by calling NewSession with a request options struct
-func (s *Session) Options(url string, ro *RequestOptions) (*Response, error) {
+func (s *Session) Options(ctx context.Context, url string, ro *RequestOptions) (*Response, error) {
 	ro = s.combineRequestOptions(ro)
+	if ctx != nil {
+		ro.Context = ctx
+	}
 	return doSessionRequest("OPTIONS", url, ro, s.HTTPClient)
 }
 

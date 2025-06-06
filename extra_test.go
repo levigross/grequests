@@ -76,7 +76,7 @@ type ResponseMethodSuite struct{ suite.Suite }
 func (s *ResponseMethodSuite) TestJSONAndBytes() {
 	srv := newJSONServer(map[string]string{"foo": "bar"})
 	defer srv.Close()
-	resp, err := Get(srv.URL)
+	resp, err := Get(context.Background(), srv.URL)
 	s.Require().NoError(err)
 	s.NotEmpty(resp.String())
 	b := resp.Bytes()
@@ -92,7 +92,7 @@ func (s *ResponseMethodSuite) TestXMLAndDownload() {
 	xmlData := "<root><foo>bar</foo></root>"
 	srv := newXMLServer(xmlData)
 	defer srv.Close()
-	resp, err := Get(srv.URL)
+	resp, err := Get(context.Background(), srv.URL)
 	s.Require().NoError(err)
 	var v struct {
 		Foo string `xml:"foo"`
@@ -100,7 +100,7 @@ func (s *ResponseMethodSuite) TestXMLAndDownload() {
 	s.NoError(resp.XML(&v, nil))
 	s.Equal("bar", v.Foo)
 
-	resp2, err := Get(srv.URL)
+	resp2, err := Get(context.Background(), srv.URL)
 	s.Require().NoError(err)
 	file := "test_download.tmp"
 	s.NoError(resp2.DownloadToFile(file))
