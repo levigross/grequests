@@ -1,4 +1,4 @@
-package main
+package grequests
 
 import (
 	"compress/flate"
@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"testing"
 )
 
 type httpbinResponse struct {
@@ -30,6 +31,13 @@ type cookiesResponse struct {
 type authResponse struct {
 	Authenticated bool   `json:"authenticated"`
 	User          string `json:"user,omitempty"`
+}
+
+// setupHttpbinServerTest spins up a new test HTTP server and returns the base
+// URL and a teardown function.
+func setupHttpbinServerTest(t *testing.T) (string, func()) {
+	ts := createHttpbinTestServer()
+	return ts.URL, func() { ts.Close() }
 }
 
 func createHttpbinTestServer() *httptest.Server {
@@ -65,7 +73,7 @@ func createHttpbinTestServer() *httptest.Server {
 			json.NewEncoder(gz).Encode(resp)
 		} else if strings.Contains(acceptEncoding, "deflate") {
 			w.Header().Set("Content-Encoding", "deflate")
-			fl := flate.NewWriter(w, flate.DefaultCompression)
+			fl, _ := flate.NewWriter(w, flate.DefaultCompression)
 			defer fl.Close()
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(fl).Encode(resp)
@@ -214,9 +222,9 @@ func createHttpbinTestServer() *httptest.Server {
 				// For some codes like 204, 304, writing a body is not allowed.
 				// http.ResponseWriter handles this automatically if we just call WriteHeader.
 				if http.StatusText(code) == "" { // Invalid code not in standard library
-                     http.Error(w, fmt.Sprintf("Invalid status code: %d", code), http.StatusBadRequest)
-                     return
-                }
+					http.Error(w, fmt.Sprintf("Invalid status code: %d", code), http.StatusBadRequest)
+					return
+				}
 
 				if code == http.StatusNoContent || code == http.StatusNotModified {
 					w.WriteHeader(code)
@@ -312,7 +320,7 @@ func createHttpbinTestServer() *httptest.Server {
 
 		w.Header().Set("Content-Encoding", "deflate")
 		w.Header().Set("Content-Type", "application/json")
-		fl := flate.NewWriter(w, flate.DefaultCompression)
+		fl, _ := flate.NewWriter(w, flate.DefaultCompression)
 		defer fl.Close()
 		json.NewEncoder(fl).Encode(deflateResp)
 	})

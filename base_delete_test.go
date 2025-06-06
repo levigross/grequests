@@ -2,22 +2,15 @@ package grequests
 
 import (
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
 	"net/url"
 	"testing"
 )
-
-// setupHttpbinServerTest creates a new test server and returns its URL and a teardown function.
-func setupHttpbinServerTest(t *testing.T) (string, func()) {
-	ts := createHttpbinTestServer()
-	return ts.URL, func() { ts.Close() }
-}
 
 func TestBasicDeleteRequest(t *testing.T) {
 	httpbinURL, teardown := setupHttpbinServerTest(t)
 	defer teardown()
 
-	resp, err := Delete(httpbinURL+"/delete", nil)
+	resp, err := Delete(httpbinURL + "/delete")
 
 	if err != nil {
 		assert.Fail(t, "Unable to make request", resp.Error)
@@ -88,31 +81,6 @@ func TestDeleteSession(t *testing.T) {
 	// err = deleteResp.JSON(&actualDeleteRespContent)
 	// assert.NoError(t, err, "Could not unmarshal DELETE response JSON")
 	// assert.Equal(t, httpbinURL+"/delete", actualDeleteRespContent.URL)
-}
-
-func TestDeleteInvalidURLSession(t *testing.T) {
-	// This test does not use httpbin, so it remains unchanged.
-	session := NewSession(nil)
-
-	if _, err := session.Delete("%../dir/", nil); err == nil {
-		switch cookie.Name {
-		case "one":
-			if cookie.Value != "two" {
-				assert.Fail(t, "Cookie value is not valid", cookie)
-			}
-		case "two":
-			if cookie.Value != "three" {
-				assert.Fail(t, "Cookie value is not valid", cookie)
-			}
-		case "three":
-			if cookie.Value != "four" {
-				assert.Fail(t, "Cookie value is not valid", cookie)
-			}
-		default:
-			assert.Fail(t, "We should not have any other cookies: ", cookie)
-		}
-	}
-
 }
 
 func TestDeleteInvalidURLSession(t *testing.T) {
