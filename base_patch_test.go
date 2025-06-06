@@ -67,14 +67,14 @@ func TestPatchSession(t *testing.T) {
 
 	// Verify response from /patch
 	var actualPatchRespContent struct {
-		Form   map[string]string   `json:"form"` // httpbin_test_server returns map[string][]string for form
-		URL    string              `json:"url"`
+		Form    map[string]string   `json:"form"` // httpbin_test_server returns map[string][]string for form
+		URL     string              `json:"url"`
 		Headers map[string][]string `json:"headers"`
 	}
 	// Adjusting expectation for Form to map[string][]string as per our server's behavior
 	var actualPatchRespContentFixed struct {
-		Form   map[string][]string `json:"form"`
-		URL    string              `json:"url"`
+		Form    map[string][]string `json:"form"`
+		URL     string              `json:"url"`
 		Headers map[string][]string `json:"headers"`
 	}
 
@@ -82,7 +82,6 @@ func TestPatchSession(t *testing.T) {
 	assert.NoError(t, err, "Could not unmarshal PATCH response JSON: ", patchResp.String())
 	assert.Equal(t, httpbinURL+"/patch", actualPatchRespContentFixed.URL)
 	assert.Equal(t, []string{"patch_value"}, actualPatchRespContentFixed.Form["patch_param"])
-
 
 	// Verify cookies are still present and sent with the PATCH request
 	// The /patch endpoint will return the headers it received.
@@ -100,7 +99,6 @@ func TestPatchSession(t *testing.T) {
 		}
 	}
 	assert.True(t, cookieHeaderFound, "Cookie header not found in PATCH request to /patch")
-
 
 	// Also check cookies in the session jar, they should persist
 	parsedURL, err := url.Parse(httpbinURL)

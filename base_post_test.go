@@ -426,11 +426,9 @@ func TestXMLPostRequestReaderBody(t *testing.T) {
 	// unless specified in Headers. The test server will report what it receives.
 	// assert.Contains(t, postResp.Headers.ContentType, "application/xml", "Content-Type should be application/xml")
 
-
 	myXMLStruct := &XMLPostMessage{}
 	newErr := xml.Unmarshal([]byte(postResp.Data), myXMLStruct)
 	assert.NoError(t, newErr, "Failed to unmarshal XML from response data")
-
 
 	if myXMLStruct.Age != 1 {
 		assert.Fail(t, fmt.Sprintf("XML content mismatch. Got: %#v, Expected Age 1", myXMLStruct))
@@ -467,7 +465,6 @@ func TestXMLMarshaledStringPostRequest(t *testing.T) {
 	}
 	assert.Equal(t, httpbinURL+"/post", postResp.URL)
 	assert.Contains(t, postResp.Headers.ContentType, "application/xml", "Content-Type should be application/xml")
-
 
 	if postResp.Data != string(encoded) {
 		assert.Fail(t, "Response data is not valid", postResp.Data, string(encoded))
@@ -538,7 +535,6 @@ func TestXMLNilPostRequest(t *testing.T) {
 	// For XML: nil, grequests sends an empty body with Content-Type: application/xml
 	assert.Contains(t, postResp.Headers.ContentType, "application/xml", "Content-Type should be application/xml for nil XML")
 
-
 	if postResp.Data != "" {
 		assert.Fail(t, "Response data is not valid for nil XML", postResp.Data)
 	}
@@ -603,12 +599,12 @@ func TestBasicPostRequestUpload(t *testing.T) {
 	assert.True(t, resp.Ok, "Request did not return OK. Status: ", resp.StatusCode, " Body: ", resp.String())
 
 	var postResp struct {
-		Args    map[string]string            `json:"args"`
-		Data    string                       `json:"data"`
-		Files   map[string]string            `json:"files"` // httpbin.org returns file content as string
-		Form    map[string]interface{}       `json:"form"`  // Use interface{} for flexibility or map[string][]string
-		Headers map[string][]string          `json:"headers"`
-		URL     string                       `json:"url"`
+		Args    map[string]string      `json:"args"`
+		Data    string                 `json:"data"`
+		Files   map[string]string      `json:"files"` // httpbin.org returns file content as string
+		Form    map[string]interface{} `json:"form"`  // Use interface{} for flexibility or map[string][]string
+		Headers map[string][]string    `json:"headers"`
+		URL     string                 `json:"url"`
 	}
 
 	err = resp.JSON(&postResp)
@@ -617,7 +613,6 @@ func TestBasicPostRequestUpload(t *testing.T) {
 	assert.Equal(t, httpbinURL+"/post", postResp.URL)
 	parsedURL, _ := url.Parse(httpbinURL)
 	assert.Equal(t, parsedURL.Host, postResp.Headers["Host"][0])
-
 
 	// Our server stores file content as string, matching httpbin.org
 	// The filename in FileUploadFromDisk becomes the key in "files" if FileNameAsFieldName is true (default)
@@ -634,7 +629,6 @@ func TestBasicPostRequestUpload(t *testing.T) {
 	} else if ok {
 		assert.Fail(t, "Form field 'One' was empty array")
 	}
-
 
 	assert.Nil(t, resp.Bytes(), "JSON decoding should fully consume the response stream (Bytes)")
 	assert.Empty(t, resp.String(), "JSON decoding should fully consume the response stream (String)")
@@ -820,7 +814,6 @@ func verifyPostJSONResponse(resp *Response, t *testing.T, expectedURL, expectedD
 	assert.NoError(t, errActual, "Failed to unmarshal actual JSON from response for comparison")
 	assert.Equal(t, expectedJSON, actualJSON, "Posted JSON content mismatch")
 
-
 	assert.Equal(t, expectedData, strings.TrimSpace(postResp.Data), "Raw data field mismatch")
 
 	if isAjax {
@@ -879,7 +872,6 @@ func TestPostSession(t *testing.T) {
 	}
 	assert.True(t, cookieHeaderFound, "Cookie header not found in POST request to /post")
 
-
 	// Check cookies in session jar
 	parsedURL, err := url.Parse(httpbinURL)
 	assert.NoError(t, err)
@@ -893,25 +885,23 @@ func TestPostSession(t *testing.T) {
 	assert.Equal(t, "two", foundCookiesInJar["one"])
 	assert.Equal(t, "three", foundCookiesInJar["two"])
 	assert.Equal(t, "four", foundCookiesInJar["three"])
-}
-		switch cookie.Name {
-		case "one":
-			if cookie.Value != "two" {
-				assert.Fail(t, "Cookie value is not valid", cookie)
-			}
-		case "two":
-			if cookie.Value != "three" {
-				assert.Fail(t, "Cookie value is not valid", cookie)
-			}
-		case "three":
-			if cookie.Value != "four" {
-				assert.Fail(t, "Cookie value is not valid", cookie)
-			}
-		default:
-			assert.Fail(t, "We should not have any other cookies: ", cookie)
-		}
-	}
 
+	switch cookie.Name {
+	case "one":
+		if cookie.Value != "two" {
+			assert.Fail(t, "Cookie value is not valid", cookie)
+		}
+	case "two":
+		if cookie.Value != "three" {
+			assert.Fail(t, "Cookie value is not valid", cookie)
+		}
+	case "three":
+		if cookie.Value != "four" {
+			assert.Fail(t, "Cookie value is not valid", cookie)
+		}
+	default:
+		assert.Fail(t, "We should not have any other cookies: ", cookie)
+	}
 }
 
 // verifyOkPostResponse verifies a basic form post response.
@@ -945,7 +935,6 @@ func verifyOkPostResponse(resp *Response, t *testing.T, expectedURL string, expe
 	parsedURL, _ := url.Parse(expectedURL)
 	assert.Equal(t, parsedURL.Host, postResp.Headers["Host"][0], "Host header in response mismatch")
 
-
 	if len(expectedFormData) > 0 {
 		for key, expectedValue := range expectedFormData {
 			formValue, ok := postResp.Form[key]
@@ -965,9 +954,7 @@ func verifyOkPostResponse(resp *Response, t *testing.T, expectedURL string, expe
 		assert.Equal(t, expectedRawData, strings.TrimSpace(postResp.Data), "Raw data in response mismatch")
 	}
 
-
 	assert.Nil(t, resp.Bytes(), "JSON decoding should fully consume the response stream (Bytes)")
-	}
 
 	if resp.String() != "" {
 		assert.Fail(t, "JSON decoding did not fully consume the response stream (String)", resp.String())
