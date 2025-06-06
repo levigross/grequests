@@ -1,6 +1,7 @@
 package grequests
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -14,14 +15,14 @@ func (s *PutSuite) TestPutRequest() {
 	srv := newPutServer()
 	defer srv.Close()
 
-	resp, err := Put(srv.URL, FromRequestOptions(&RequestOptions{Data: map[string]string{"one": "two"}}))
+	resp, err := Put(context.Background(), srv.URL, FromRequestOptions(&RequestOptions{Data: map[string]string{"one": "two"}}))
 	s.Require().NoError(err)
 	s.True(resp.Ok)
 }
 
 func (s *PutSuite) TestPutInvalidURLSession() {
 	session := NewSession(nil)
-	_, err := session.Put("%../dir/", nil)
+	_, err := session.Put(context.Background(), "%../dir/", nil)
 	s.Error(err)
 }
 

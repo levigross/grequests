@@ -1,6 +1,7 @@
 package grequests
 
 import (
+	"context"
 	"net/url"
 	"testing"
 
@@ -15,13 +16,13 @@ func (s *GetSuite) TestGetRequest() {
 	srv := newGetServer()
 	defer srv.Close()
 
-	resp, err := Get(srv.URL)
+	resp, err := Get(context.Background(), srv.URL)
 	s.Require().NoError(err)
 	s.True(resp.Ok)
 }
 
 func (s *GetSuite) TestGetInvalidURL() {
-	_, err := Get("%../dir/")
+	_, err := Get(context.Background(), "%../dir/")
 	s.Error(err)
 }
 
@@ -30,9 +31,9 @@ func (s *GetSuite) TestGetSessionCookies() {
 	defer srv.Close()
 
 	session := NewSession(nil)
-	_, err := session.Get(srv.URL+"?one=two", nil)
+	_, err := session.Get(context.Background(), srv.URL+"?one=two", nil)
 	s.Require().NoError(err)
-	_, err = session.Get(srv.URL+"?two=three", nil)
+	_, err = session.Get(context.Background(), srv.URL+"?two=three", nil)
 	s.Require().NoError(err)
 
 	cookieURL, err := url.Parse(srv.URL)

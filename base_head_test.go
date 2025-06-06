@@ -1,6 +1,7 @@
 package grequests
 
 import (
+	"context"
 	"net/url"
 	"testing"
 
@@ -15,7 +16,7 @@ func (s *HeadSuite) TestHeadRequest() {
 	srv := newHeadServer()
 	defer srv.Close()
 
-	resp, err := Head(srv.URL)
+	resp, err := Head(context.Background(), srv.URL)
 	s.Require().NoError(err)
 	s.True(resp.Ok)
 	s.Equal("text/plain", resp.Header.Get("Content-Type"))
@@ -26,11 +27,11 @@ func (s *HeadSuite) TestHeadSessionCookies() {
 	defer srv.Close()
 
 	session := NewSession(nil)
-	_, err := session.Head(srv.URL+"?one=two", &RequestOptions{})
+	_, err := session.Head(context.Background(), srv.URL+"?one=two", &RequestOptions{})
 	s.Require().NoError(err)
-	_, err = session.Head(srv.URL+"?two=three", &RequestOptions{})
+	_, err = session.Head(context.Background(), srv.URL+"?two=three", &RequestOptions{})
 	s.Require().NoError(err)
-	_, err = session.Head(srv.URL+"?three=four", &RequestOptions{})
+	_, err = session.Head(context.Background(), srv.URL+"?three=four", &RequestOptions{})
 	s.Require().NoError(err)
 
 	cookieURL, err := url.Parse(srv.URL)
@@ -40,7 +41,7 @@ func (s *HeadSuite) TestHeadSessionCookies() {
 
 func (s *HeadSuite) TestHeadInvalidURLSession() {
 	session := NewSession(nil)
-	_, err := session.Head("%../dir/", nil)
+	_, err := session.Head(context.Background(), "%../dir/", nil)
 	s.Error(err)
 }
 

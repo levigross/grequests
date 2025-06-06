@@ -1,119 +1,74 @@
 # GRequests
-A Go "clone" of the great and famous Requests library
+
+GRequests provides a clean wrapper around Go's `net/http` package.  It mimics the convenience of the Python Requests library while keeping the power and safety of Go.
 
 [![Join the chat at https://gitter.im/levigross/grequests](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/levigross/grequests?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-License
-======
+## Features
 
-GRequests is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the full license text
+- Simple helpers for every HTTP verb
+- Context aware request functions for easy cancellation
+- RequestOptions for headers, query parameters, proxies, cookies and more
+- Built in support for JSON and XML responses
+- File uploads and convenient download helpers
+- Session type for reusing cookies between requests
 
-Features
-========
+## Installation
 
-- Responses can be serialized into JSON and XML
-- Easy file uploads
-- Easy file downloads
-- Support for the following HTTP verbs `GET, HEAD, POST, PUT, DELETE, PATCH, OPTIONS`
-
-Install
-=======
-`go get -u github.com/levigross/grequests`
-
-Usage
-======
-`import "github.com/levigross/grequests"`
-
-Basic Examples
-=========
-Basic GET request:
-
-```go
-resp, err := grequests.Get("http://httpbin.org/get", UserAgent("Foo User"), DisableCompression())
-// You can modify the request by passing an optional Options functions
-
-if err != nil {
-	log.Fatalln("Unable to make request: ", err)
-}
-
-fmt.Println(resp.String())
-// {
-//   "args": {},
-//   "headers": {
-//     "Accept": "*/*",
-//     "Host": "httpbin.org",
+```bash
+go get github.com/levigross/grequests/v2
 ```
 
-If an error occurs all of the other properties and methods of a `Response` will be `nil`
-
-Quirks
-=======
-## Request Quirks
-
-When passing parameters to be added to a URL, if the URL has existing parameters that *_contradict_* with what has been passed within `Params` – `Params` will be the "source of authority" and overwrite the contradicting URL parameter.
-
-Lets see how it works...
+## Quick start
 
 ```go
-ro := &RequestOptions{
-	Params: map[string]string{"Hello": "Goodbye"},
+package main
+
+import (
+    "context"
+    "log"
+
+    "github.com/levigross/grequests/v2"
+)
+
+func main() {
+    resp, err := grequests.Get(context.Background(), "https://httpbin.org/get",
+        grequests.UserAgent("MyAgent"))
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    var data map[string]any
+    if err := resp.JSON(&data); err != nil {
+        log.Fatal(err)
+    }
+    log.Println(data)
 }
-Get("http://httpbin.org/get?Hello=World", ro)
-// The URL is now http://httpbin.org/get?Hello=Goodbye
 ```
 
-## Response Quirks
-
-Order matters! This is because `grequests.Response` is implemented as an `io.ReadCloser` which proxies the *http.Response.Body* `io.ReadCloser` interface. It also includes an internal buffer for use in `Response.String()` and `Response.Bytes()`.
-
-Here are a list of methods that consume the *http.Response.Body* `io.ReadCloser` interface.
-
-- Response.JSON
-- Response.XML
-- Response.DownloadToFile
-- Response.Close
-- Response.Read
-
-The following methods make use of an internal byte buffer
-
-- Response.String
-- Response.Bytes
-
-In the code below, once the file is downloaded – the `Response` struct no longer has access to the request bytes
+### Uploading a file
 
 ```go
-response := Get("http://some-wonderful-file.txt")
-
-if err := response.DownloadToFile("randomFile"); err != nil {
-    log.Println("Unable to download file: ", err)
+fd, _ := grequests.FileUploadFromDisk("testdata/file.txt")
+ro := &grequests.RequestOptions{
+    Files: fd,
+    Data:  map[string]string{"desc": "test"},
 }
-
-// At this point the .String and .Bytes method will return empty responses
-
-response.Bytes() == nil // true
-response.String() == "" // true
-
+resp, err := grequests.Post(context.Background(), "https://httpbin.org/post",
+    grequests.FromRequestOptions(ro))
 ```
 
-But if we were to call `response.Bytes()` or `response.String()` first, every operation will succeed until the internal buffer is cleared:
+### Using a session
 
 ```go
-response := Get("http://some-wonderful-file.txt")
-
-// This call to .Bytes caches the request bytes in an internal byte buffer – which can be used again and again until it is cleared
-response.Bytes() == `file-bytes`
-response.String() == "file-string"
-
-// This will work because it will use the internal byte buffer
-if err := resp.DownloadToFile("randomFile"); err != nil {
-	log.Println("Unable to download file: ", err)
-}
-
-// Now if we clear the internal buffer....
-response.ClearInternalBuffer()
-
-// At this point the .String and .Bytes method will return empty responses
-
-response.Bytes() == nil // true
-response.String() == "" // true
+sess := grequests.NewSession(nil)
+_, _ = sess.Get(context.Background(), "https://httpbin.org/cookies/set?one=two", nil)
+resp, _ := sess.Get(context.Background(), "https://httpbin.org/cookies", nil)
+log.Println(resp.String())
 ```
+
+See the documentation for a full list of available options.
+
+## License
+
+GRequests is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

@@ -1,6 +1,7 @@
 package grequests
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -14,14 +15,14 @@ func (s *PatchSuite) TestPatchRequest() {
 	srv := newPatchServer()
 	defer srv.Close()
 
-	resp, err := Patch(srv.URL, FromRequestOptions(&RequestOptions{Data: map[string]string{"one": "two"}}))
+	resp, err := Patch(context.Background(), srv.URL, FromRequestOptions(&RequestOptions{Data: map[string]string{"one": "two"}}))
 	s.Require().NoError(err)
 	s.True(resp.Ok)
 }
 
 func (s *PatchSuite) TestPatchInvalidURLSession() {
 	session := NewSession(nil)
-	_, err := session.Patch("%../dir/", nil)
+	_, err := session.Patch(context.Background(), "%../dir/", nil)
 	s.Error(err)
 }
 
