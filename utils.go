@@ -29,17 +29,17 @@ var (
 	// with too many redirects
 	ErrRedirectLimitExceeded = errors.New("grequests: Request exceeded redirect count")
 
-	// RedirectLimit is a tunable variable that specifies how many times we can
+	// RequestRedirectLimit is a tunable variable that specifies how many times we can
 	// redirect in response to a redirect. This is the global variable, if you
 	// wish to set this on a request by request basis, set it within the
 	// `RequestOptions` structure
-	RedirectLimit = 30
+	RequestRedirectLimit = 30
 
-	// SensitiveHTTPHeaders is a map of sensitive HTTP headers that a user
+	// RequestSensitiveHTTPHeaders is a map of sensitive HTTP headers that a user
 	// doesn't want passed on a redirect. This is the global variable, if you
 	// wish to set this on a request by request basis, set it within the
 	// `RequestOptions` structure
-	SensitiveHTTPHeaders = map[string]struct{}{
+	RequestSensitiveHTTPHeaders = map[string]struct{}{
 		"Www-Authenticate":    {},
 		"Authorization":       {},
 		"Proxy-Authorization": {},
@@ -62,7 +62,7 @@ func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
 		}
 
 		if ro.RedirectLimit == 0 {
-			ro.RedirectLimit = RedirectLimit
+			ro.RedirectLimit = RequestRedirectLimit
 		}
 
 		if len(via) >= ro.RedirectLimit {
@@ -70,7 +70,7 @@ func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
 		}
 
 		if ro.SensitiveHTTPHeaders == nil {
-			ro.SensitiveHTTPHeaders = SensitiveHTTPHeaders
+			ro.SensitiveHTTPHeaders = RequestSensitiveHTTPHeaders
 		}
 
 		for k, vv := range via[0].Header {
