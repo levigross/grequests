@@ -52,13 +52,21 @@ func FileUploadFromGlob(fileSystemGlob string) ([]FileUpload, error) {
 	filesToUpload := make([]FileUpload, 0, len(files))
 
 	for _, f := range files {
-		if s, err := os.Stat(f); err != nil || s.IsDir() {
+		s, err := os.Stat(f)
+		if err != nil {
+			// log.Printf("grequests: error stating file %s, skipping: %v", f, err) // Optional: log skipped files
+			continue
+		}
+		if s.IsDir() {
+			// log.Printf("grequests: %s is a directory, skipping", f) // Optional: log skipped directories
 			continue
 		}
 
-		// ignoring error because I can stat the file
-		fd, _ := os.Open(f)
-
+		fd, err := os.Open(f)
+		if err != nil {
+			// log.Printf("grequests: error opening file %s for upload, skipping: %v", f, err) // Optional: log skipped files due to open error
+			continue // Skip files that cannot be opened
+		}
 		filesToUpload = append(filesToUpload, FileUpload{FileContents: fd, FileName: filepath.Base(fd.Name())})
 
 	}

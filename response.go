@@ -67,8 +67,14 @@ func (r *Response) Close() error {
 		return r.Error
 	}
 
-	_, _ = io.Copy(io.Discard, r)
-
+	if _, err := io.Copy(io.Discard, r); err != nil {
+		// Log an error if we fail to fully consume the response body.
+		// This might affect connection reuse but doesn't change the outcome of Body.Close().
+		// Consider making this log conditional or more structured if it becomes noisy.
+		// log.Printf("grequests: error consuming response body for connection reuse: %v", err)
+		// For now, let's not add a log statement that could be noisy without a configurable logging solution.
+		// The primary error is from Body.Close().
+	}
 	return r.RawResponse.Body.Close()
 }
 

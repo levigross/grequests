@@ -15,6 +15,7 @@ import (
 	"net/http/cookiejar"
 	"net/textproto"
 	"net/url"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -486,13 +487,18 @@ func BuildHTTPClient(ro RequestOptions) *http.Client {
 	}
 
 	var cookieJar http.CookieJar
+	var err error
 
 	if ro.UseCookieJar {
 		if ro.CookieJar != nil {
 			cookieJar = ro.CookieJar
 		} else {
-			// The function does not return an error ever... so we are just ignoring it
-			cookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+			cookieJar, err = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+			if err != nil {
+				// Log this unexpected error, as cookiejar.New is not expected to fail with publicsuffix.List.
+				// The http.Client will still function with a nil Jar.
+				log.Printf("grequests: unexpected error initializing cookie jar: %v", err)
+			}
 		}
 	}
 
