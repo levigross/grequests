@@ -2,56 +2,65 @@ package grequests
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-func TestErrorOpenFile(t *testing.T) {
+type FileUploadSuite struct {
+	suite.Suite
+}
+
+func (s *FileUploadSuite) TestErrorOpenFile() {
 	fd, err := FileUploadFromDisk("I am Not A File")
 	if err == nil {
-		assert.Fail(t, "We are not getting an error back from our non existent file: ")
+		s.Fail("We are not getting an error back from our non existent file: ")
 	}
 
 	if fd != nil {
-		assert.Fail(t, "We actually got back a pointer: ", fd)
+		s.Fail("We actually got back a pointer: ", fd)
 	}
 }
 
-func TestGLOBFiles(t *testing.T) {
+func (s *FileUploadSuite) TestGLOBFiles() {
 	fd, err := FileUploadFromGlob("testdata/*")
 
 	if err != nil {
-		assert.Fail(t, "Got an invalid GLOB: ", err)
+		s.Fail("Got an invalid GLOB: %v", err)
 	}
 
 	if len(fd) != 2 {
-		assert.Fail(t, "Some how we have more than two files in our glob", len(fd), fd)
+		s.Fail("Some how we have more than two files in our glob %v %v", len(fd), fd)
 	}
 }
 
-func TestInvalidGlob(t *testing.T) {
+func (s *FileUploadSuite) TestInvalidGlob() {
 	if _, err := FileUploadFromGlob("[-]"); err == nil {
-		assert.Fail(t, "Somehow the glob worked")
+		s.Fail("Somehow the glob worked")
 	}
 }
 
-func TestNoGlobFiles(t *testing.T) {
+func (s *FileUploadSuite) TestNoGlobFiles() {
 	if _, err := FileUploadFromGlob("notapath"); err == nil {
-		assert.Fail(t, "Somehow got a valid GLOB")
+		s.Fail("Somehow got a valid GLOB")
 	}
 }
 
-func TestGlobWithDir(t *testing.T) {
+func (s *FileUploadSuite) TestGlobWithDir() {
 	fd, err := FileUploadFromGlob("*test*")
 
 	if err != nil {
-		assert.Fail(t, "Glob failed", err)
+		s.Fail("Glob failed %v", err)
 	}
 
 	for _, f := range fd {
 		if f.FileName == "test_files" {
-			assert.Fail(t, fmt.Sprintf("%v is a dir (which cannot be uploaded)", f))
+			s.Fail(fmt.Sprintf("%v is a dir (which cannot be uploaded)", f))
 		}
 	}
 
+}
+
+func TestFileUploadSuite(t *testing.T) {
+	suite.Run(t, new(FileUploadSuite))
 }
