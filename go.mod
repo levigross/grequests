@@ -1,4 +1,4 @@
-module github.com/levigross/grequests
+module github.com/levigross/grequests/v2
 
 go 1.21
 
