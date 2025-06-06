@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -236,7 +238,7 @@ func TestGetRequestHook(t *testing.T) {
 		BeforeRequest(addHelloWorld))
 	j := verifyOkResponse(resp, t)
 	if j.Headers.Hello != "World" {
-		t.Error("Hook Function failed")
+		assert.Fail(t, "Hook Function failed")
 	}
 }
 
@@ -248,13 +250,13 @@ func TestGetNoOptionsCustomClient(t *testing.T) {
 
 func TestGetCustomTLSHandshakeTimeout(t *testing.T) {
 	if _, err := Get("https://httpbin.org", TLSHandshakeTimeout(time.Nanosecond)); err == nil {
-		t.Error("unexpected: successful TLS Handshake")
+		assert.Fail(t, "unexpected: successful TLS Handshake")
 	}
 }
 
 func TestGetCustomDialTimeout(t *testing.T) {
 	if _, err := Get("http://httpbin.org", DialTimeout(time.Nanosecond)); err == nil {
-		t.Error("unexpected: successful connection")
+		assert.Fail(t, "unexpected: successful connection")
 	}
 }
 
@@ -275,7 +277,7 @@ func TestGetProxy(t *testing.T) {
 
 	pu, err := url.Parse(proxy.URL)
 	if err != nil {
-		t.Fatal(err)
+		assert.FailNow(t, fmt.Sprint(err))
 	}
 	pm := map[string]*url.URL{pu.Scheme: pu}
 	resp, err := Head(ts.URL, Proxies(pm))
@@ -283,17 +285,17 @@ func TestGetProxy(t *testing.T) {
 	defer http.DefaultTransport.(*http.Transport).CloseIdleConnections()
 
 	if err != nil {
-		t.Error("Unable to make request: ", err)
+		assert.Fail(t, "Unable to make request: ", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Response is not OK for some reason: ", resp.StatusCode)
+		assert.Fail(t, "Response is not OK for some reason: ", resp.StatusCode)
 	}
 
 	got := <-ch
 	want := "proxy for " + ts.URL + "/"
 	if got != want {
-		t.Errorf("want %q, got %q", want, got)
+		assert.Fail(t, fmt.Sprintf("want %q, got %q", want, got))
 	}
 }
 
@@ -301,7 +303,7 @@ func TestGetSyncInvalidProxyScheme(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get",
 		Proxies(map[string]*url.URL{"gopher": nil}))
 	if err != nil {
-		t.Error("Request failed: ", err)
+		assert.Fail(t, "Request failed: ", err)
 	}
 
 	verifyOkResponse(resp, t)
@@ -310,7 +312,7 @@ func TestGetSyncInvalidProxyScheme(t *testing.T) {
 func TestGetSyncNoOptions(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get")
 	if err != nil {
-		t.Error("Request failed: ", err)
+		assert.Fail(t, "Request failed: ", err)
 	}
 
 	verifyOkResponse(resp, t)
@@ -338,25 +340,25 @@ func TestGetWithCookies(t *testing.T) {
 		}))
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	myJSONStruct := &TestJSONCookies{}
 
 	if err := resp.JSON(myJSONStruct); err != nil {
-		t.Error("Cannot serialize cookie JSON: ", err)
+		assert.Fail(t, "Cannot serialize cookie JSON: ", err)
 	}
 
 	if myJSONStruct.Cookies.TestCookie != "Random Value" {
-		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+		assert.Fail(t, fmt.Sprintf("Cookie value not set properly: %#v", myJSONStruct))
 	}
 
 	if myJSONStruct.Cookies.AnotherCookie != "Some Value" {
-		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+		assert.Fail(t, fmt.Sprintf("Cookie value not set properly: %#v", myJSONStruct))
 	}
 
 }
@@ -379,25 +381,25 @@ func TestGetWithCookiesCustomCookieJar(t *testing.T) {
 		}))
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	myJSONStruct := &TestJSONCookies{}
 
 	if err := resp.JSON(myJSONStruct); err != nil {
-		t.Error("Cannot serialize cookie JSON: ", err)
+		assert.Fail(t, "Cannot serialize cookie JSON: ", err)
 	}
 
 	if myJSONStruct.Cookies.TestCookie != "Random Value" {
-		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+		assert.Fail(t, fmt.Sprintf("Cookie value not set properly: %#v", myJSONStruct))
 	}
 
 	if myJSONStruct.Cookies.AnotherCookie != "Some Value" {
-		t.Errorf("Cookie value not set properly: %#v", myJSONStruct)
+		assert.Fail(t, fmt.Sprintf("Cookie value not set properly: %#v", myJSONStruct))
 	}
 
 }
@@ -408,58 +410,58 @@ func TestGetSession(t *testing.T) {
 	resp, err := session.Get("http://httpbin.org/cookies/set", &RequestOptions{Params: map[string]string{"one": "two"}})
 
 	if err != nil {
-		t.Fatal("Cannot set cookie: ", err)
+		assert.FailNow(t, "Cannot set cookie: ", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	resp, err = session.Get("http://httpbin.org/cookies/set", &RequestOptions{Params: map[string]string{"two": "three"}})
 
 	if err != nil {
-		t.Fatal("Cannot set cookie: ", err)
+		assert.FailNow(t, "Cannot set cookie: ", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	resp, err = session.Get("http://httpbin.org/cookies/set", &RequestOptions{Params: map[string]string{"three": "four"}})
 
 	if err != nil {
-		t.Fatal("Cannot set cookie: ", err)
+		assert.FailNow(t, "Cannot set cookie: ", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	cookieURL, err := url.Parse("http://httpbin.org")
 	if err != nil {
-		t.Error("We (for some reason) cannot parse the cookie URL")
+		assert.Fail(t, "We (for some reason) cannot parse the cookie URL")
 	}
 
 	if len(session.HTTPClient.Jar.Cookies(cookieURL)) != 3 {
-		t.Error("Invalid number of cookies provided: ", session.HTTPClient.Jar.Cookies(cookieURL))
+		assert.Fail(t, "Invalid number of cookies provided: ", session.HTTPClient.Jar.Cookies(cookieURL))
 	}
 
 	for _, cookie := range session.HTTPClient.Jar.Cookies(cookieURL) {
 		switch cookie.Name {
 		case "one":
 			if cookie.Value != "two" {
-				t.Error("Cookie value is not valid", cookie)
+				assert.Fail(t, "Cookie value is not valid", cookie)
 			}
 		case "two":
 			if cookie.Value != "three" {
-				t.Error("Cookie value is not valid", cookie)
+				assert.Fail(t, "Cookie value is not valid", cookie)
 			}
 		case "three":
 			if cookie.Value != "four" {
-				t.Error("Cookie value is not valid", cookie)
+				assert.Fail(t, "Cookie value is not valid", cookie)
 			}
 		default:
-			t.Error("We should not have any other cookies: ", cookie)
+			assert.Fail(t, "We should not have any other cookies: ", cookie)
 		}
 	}
 
@@ -480,7 +482,7 @@ func TestGetInvalidURL(t *testing.T) {
 		FromRequestOptions(&RequestOptions{Params: map[string]string{"1": "2"}}))
 
 	if err == nil {
-		t.Error("Some how the request was valid to make request", err)
+		assert.Fail(t, "Some how the request was valid to make request", err)
 	}
 
 	resp.ClearInternalBuffer() // This will panic without our nil checks
@@ -490,7 +492,7 @@ func TestGetInvalidURLNoParams(t *testing.T) {
 	_, err := Get("%../dir/")
 
 	if err == nil {
-		t.Error("Some how the request was valid to make request", err)
+		assert.Fail(t, "Some how the request was valid to make request", err)
 	}
 }
 
@@ -498,7 +500,7 @@ func TestGetInvalidURLSession(t *testing.T) {
 	session := NewSession(nil)
 
 	if _, err := session.Get("%../dir/", nil); err == nil {
-		t.Error("Some how the request was valid to make request ", err)
+		assert.Fail(t, "Some how the request was valid to make request ", err)
 	}
 }
 
@@ -506,25 +508,25 @@ func TestGetXMLSerialize(t *testing.T) {
 	resp, err := Get("http://httpbin.org/xml")
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	userXML := &GetXMLSample{}
 
 	if err := resp.XML(userXML, xmlASCIIDecoder); err != nil {
-		t.Error("Unable to consume the response as XML: ", err)
+		assert.Fail(t, "Unable to consume the response as XML: ", err)
 	}
 
 	if userXML.Title != "Sample Slide Show" {
-		t.Errorf("Invalid XML serialization %#v", userXML)
+		assert.Fail(t, fmt.Sprintf("Invalid XML serialization %#v", userXML))
 	}
 
 	if err := resp.XML(int(123), nil); err == nil {
-		t.Error("Still able to consume XML from used response")
+		assert.Fail(t, "Still able to consume XML from used response")
 	}
 
 }
@@ -533,7 +535,7 @@ func TestGetCustomUserAgentOld(t *testing.T) {
 	resp, _ := Get("http://httpbin.org/get", UserAgent("LeviBot 0.1"))
 	jsonResp := verifyOkResponse(resp, t)
 	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
-		t.Error("User agent header not properly set")
+		assert.Fail(t, "User agent header not properly set")
 	}
 }
 
@@ -541,7 +543,7 @@ func TestGetCustomUserAgent(t *testing.T) {
 	resp, _ := Get("http://httpbin.org/get", UserAgent("LeviBot 0.1"))
 	jsonResp := verifyOkResponse(resp, t)
 	if jsonResp.Headers.UserAgent != "LeviBot 0.1" {
-		t.Error("User agent header not properly set", jsonResp.Headers.UserAgent)
+		assert.Fail(t, "User agent header not properly set", jsonResp.Headers.UserAgent)
 	}
 }
 
@@ -550,22 +552,22 @@ func TestGetBasicAuth(t *testing.T) {
 	// Not the usual JSON so copy and paste from below
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	myJSONStruct := &BasicGetResponseBasicAuth{}
 
 	err = resp.JSON(myJSONStruct)
 	if err != nil {
-		t.Error("Unable to coerce to JSON", err)
+		assert.Fail(t, "Unable to coerce to JSON", err)
 	}
 
 	if myJSONStruct.Headers.Authorization != "Basic TGV2aTpCb3Q=" {
-		t.Error("Unable to set HTTP basic auth", myJSONStruct.Headers)
+		assert.Fail(t, "Unable to set HTTP basic auth", myJSONStruct.Headers)
 	}
 
 }
@@ -577,22 +579,22 @@ func TestGetCustomHeader(t *testing.T) {
 	// Not the usual JSON so copy and paste from below
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	myJSONStruct := &BasicGetResponseNewHeader{}
 
 	err = resp.JSON(myJSONStruct)
 	if err != nil {
-		t.Error("Unable to coerce to JSON", err)
+		assert.Fail(t, "Unable to coerce to JSON", err)
 	}
 
 	if myJSONStruct.Headers.XWonderfulHeader != "1" {
-		t.Error("Unable to set custom HTTP header", myJSONStruct.Headers)
+		assert.Fail(t, "Unable to set custom HTTP header", myJSONStruct.Headers)
 	}
 }
 
@@ -604,10 +606,10 @@ func TestGetInvalidSSLCertNoVerify(t *testing.T) {
 	} {
 		resp, err := Get(badSSL, DisableTLSCertValidation())
 		if err != nil {
-			t.Error("Unable to make request", err)
+			assert.Fail(t, "Unable to make request", err)
 		}
 		if resp.Ok != true {
-			t.Error("Request did not return OK")
+			assert.Fail(t, "Request did not return OK")
 		}
 	}
 
@@ -621,11 +623,11 @@ func TestGetInvalidSSLCertNoVerifyNoOptions(t *testing.T) {
 	} {
 		resp, err := Get(badSSL)
 		if err == nil {
-			t.Error("Unable to make request", err)
+			assert.Fail(t, "Unable to make request", err)
 		}
 
 		if resp.Ok == true {
-			t.Error("Request did not return OK")
+			assert.Fail(t, "Request did not return OK")
 		}
 	}
 }
@@ -634,11 +636,11 @@ func TestGetInvalidSSLCertNoCompression(t *testing.T) {
 	resp, err := Get("https://self-signed.badssl.com/", DisableCompression(), UserAgent("LeviBot 0.1"))
 
 	if err == nil {
-		t.Error("SSL verification worked when it shouldn't of", err)
+		assert.Fail(t, "SSL verification worked when it shouldn't of", err)
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -648,11 +650,11 @@ func TestGetInvalidSSLCertWithCompression(t *testing.T) {
 	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err == nil {
-		t.Error("SSL verification worked when it shouldn't of", err)
+		assert.Fail(t, "SSL verification worked when it shouldn't of", err)
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -662,53 +664,53 @@ func TestErrorResponseNOOP(t *testing.T) {
 	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err == nil {
-		t.Error("SSL verification worked when it shouldn't of", err)
+		assert.Fail(t, "SSL verification worked when it shouldn't of", err)
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 	myJSONStruct := &BasicGetResponseArgs{}
 
 	if err := resp.JSON(myJSONStruct); err == nil {
-		t.Error("Somehow Able to convert to JSON", err)
+		assert.Fail(t, "Somehow Able to convert to JSON", err)
 	}
 
 	if resp.Bytes() != nil {
-		t.Error("Somehow byte buffer is working now (bytes)", resp.Bytes())
+		assert.Fail(t, "Somehow byte buffer is working now (bytes)", resp.Bytes())
 	}
 
 	if resp.String() != "" {
-		t.Error("Somehow byte buffer is working now (bytes)", resp.String())
+		assert.Fail(t, "Somehow byte buffer is working now (bytes)", resp.String())
 	}
 
 	resp.ClearInternalBuffer()
 
 	if resp.Bytes() != nil {
-		t.Error("Somehow byte buffer is working now (bytes)", resp.Bytes())
+		assert.Fail(t, "Somehow byte buffer is working now (bytes)", resp.Bytes())
 	}
 
 	if resp.String() != "" {
-		t.Error("Somehow byte buffer is working now (bytes)", resp.String())
+		assert.Fail(t, "Somehow byte buffer is working now (bytes)", resp.String())
 	}
 
 	userXML := &GetXMLSample{}
 
 	if err := resp.XML(userXML, xmlASCIIDecoder); err == nil {
-		t.Errorf("Somehow to consume the response as XML: %#v", userXML)
+		assert.Fail(t, fmt.Sprintf("Somehow to consume the response as XML: %#v", userXML))
 	}
 
 	fileName := "randomFile"
 
 	if err := resp.DownloadToFile(fileName); err == nil {
-		t.Error("Somehow able to download to file: ", err)
+		assert.Fail(t, "Somehow able to download to file: ", err)
 	}
 
 	var buf [1]byte
 
 	if written, err := resp.Read(buf[:]); written != -1 && err == nil {
-		t.Error("Somehow we were able to read from our error response")
+		assert.Fail(t, "Somehow we were able to read from our error response")
 	}
 
 }
@@ -720,11 +722,11 @@ func TestGetInvalidSSLCertNoCompressionNoVerify(t *testing.T) {
 	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err != nil {
-		t.Error("SSL verification worked when it shouldn't of", err)
+		assert.Fail(t, "SSL verification worked when it shouldn't of", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -735,11 +737,11 @@ func TestGetInvalidSSLCertWithCompressionNoVerify(t *testing.T) {
 	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err != nil {
-		t.Error("SSL verification worked when it shouldn't of", err)
+		assert.Fail(t, "SSL verification worked when it shouldn't of", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -749,11 +751,11 @@ func TestGetInvalidSSLCert(t *testing.T) {
 	resp, err := Get("https://self-signed.badssl.com/", FromRequestOptions(ro))
 
 	if err == nil {
-		t.Error("SSL verification worked when it shouldn't of", err)
+		assert.Fail(t, "SSL verification worked when it shouldn't of", err)
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -789,11 +791,11 @@ func TestGetBasicArgsQueryStructErr(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get?Goodbye=World", FromRequestOptions(ro))
 
 	if err == nil {
-		t.Error("URL Parsing should have failed")
+		assert.Fail(t, "URL Parsing should have failed")
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -805,11 +807,11 @@ func TestGetBasicArgsQueryStructUrlQueryErr(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get?Goodbye=World%zz", FromRequestOptions(ro))
 
 	if err == nil {
-		t.Error("URL Parsing should have failed")
+		assert.Fail(t, "URL Parsing should have failed")
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -821,11 +823,11 @@ func TestGetBasicArgsQueryStructUrlErr(t *testing.T) {
 	resp, err := Get("%", FromRequestOptions(ro))
 
 	if err == nil {
-		t.Error("URL Parsing should have failed")
+		assert.Fail(t, "URL Parsing should have failed")
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -837,11 +839,11 @@ func TestGetBasicArgsErr(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get?Goodbye=%zzz", FromRequestOptions(ro))
 
 	if err == nil {
-		t.Error("URL Parsing should have failed")
+		assert.Fail(t, "URL Parsing should have failed")
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did return OK")
+		assert.Fail(t, "Request did return OK")
 	}
 
 }
@@ -871,11 +873,11 @@ func TestGetFileDownload(t *testing.T) {
 	fileName := "randomFile"
 
 	if err := resp.DownloadToFile(fileName); err != nil {
-		t.Error("Unable to download to file: ", err)
+		assert.Fail(t, "Unable to download to file: ", err)
 	}
 
 	if err := resp.DownloadToFile("."); err == nil {
-		t.Error("Able to create file '.'")
+		assert.Fail(t, "Able to create file '.'")
 	}
 
 	fd, err := os.Open(fileName)
@@ -883,7 +885,7 @@ func TestGetFileDownload(t *testing.T) {
 	defer os.Remove(fileName)
 
 	if err != nil {
-		t.Error("Unable to open file to verify content ", err)
+		assert.Fail(t, "Unable to open file to verify content ", err)
 	}
 
 	jsonDecoder := json.NewDecoder(fd)
@@ -891,27 +893,27 @@ func TestGetFileDownload(t *testing.T) {
 	myJSONStruct := &BasicGetResponse{}
 
 	if err := jsonDecoder.Decode(myJSONStruct); err != nil {
-		t.Error("Unable to cocerce file to JSON ", err)
+		assert.Fail(t, "Unable to cocerce file to JSON ", err)
 	}
 
 	if myJSONStruct.URL != "http://httpbin.org/get" {
-		t.Error("For some reason the URL isn't the same", myJSONStruct.URL)
+		assert.Fail(t, "For some reason the URL isn't the same", myJSONStruct.URL)
 	}
 
 	if myJSONStruct.Headers.Host != "httpbin.org" {
-		t.Error("The host header is invalid")
+		assert.Fail(t, "The host header is invalid")
 	}
 
 	if resp.Bytes() != nil {
-		t.Error("JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
+		assert.Fail(t, "JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
 	}
 
 	if resp.String() != "" {
-		t.Error("JSON decoding did not fully consume the response stream (String)", resp.String())
+		assert.Fail(t, "JSON decoding did not fully consume the response stream (String)", resp.String())
 	}
 
 	if resp.StatusCode != 200 {
-		t.Error("Response returned a non-200 code")
+		assert.Fail(t, "Response returned a non-200 code")
 	}
 
 }
@@ -920,21 +922,21 @@ func TestJsonConsumedResponse(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	if resp.Bytes() == nil {
-		t.Error("Unable to coerce value to bytes", resp.Bytes())
+		assert.Fail(t, "Unable to coerce value to bytes", resp.Bytes())
 	}
 
 	resp.ClearInternalBuffer()
 
 	if err := resp.JSON(struct{}{}); err == nil {
-		t.Error("Struct should not be able to hold JSON: ")
+		assert.Fail(t, "Struct should not be able to hold JSON: ")
 	}
 }
 
@@ -942,21 +944,21 @@ func TestDownloadConsumedResponse(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	if resp.Bytes() == nil {
-		t.Error("Unable to coerce value to bytes")
+		assert.Fail(t, "Unable to coerce value to bytes")
 	}
 
 	resp.ClearInternalBuffer()
 
 	if err := resp.DownloadToFile("randomFile"); err == nil {
-		t.Error("Still able to download file: ", err)
+		assert.Fail(t, "Still able to download file: ", err)
 	}
 
 	defer os.Remove("randomFile")
@@ -966,19 +968,19 @@ func TestGetBytes(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	if resp.Bytes() == nil {
-		t.Error("JSON decoding did not fully consume the response stream")
+		assert.Fail(t, "JSON decoding did not fully consume the response stream")
 	}
 
 	if bytes.Compare(resp.Bytes(), resp.Bytes()) != 0 {
-		t.Error("Body bytes have not been cached", resp.Bytes())
+		assert.Fail(t, "Body bytes have not been cached", resp.Bytes())
 	}
 }
 
@@ -986,23 +988,23 @@ func TestGetBytesNoBuffer(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	if resp.Bytes() == nil {
-		t.Error("Cannot coerce HTTP response to bytes")
+		assert.Fail(t, "Cannot coerce HTTP response to bytes")
 	}
 
 	if bytes.Compare(resp.Bytes(), resp.Bytes()) != 0 {
-		t.Error("Body bytes have not been cached", resp.Bytes())
+		assert.Fail(t, "Body bytes have not been cached", resp.Bytes())
 	}
 
 	if err := resp.DownloadToFile("randomFile"); err != nil {
-		t.Error("Unable to download file: ", err)
+		assert.Fail(t, "Unable to download file: ", err)
 	}
 
 	defer os.Remove("randomFile")
@@ -1010,7 +1012,7 @@ func TestGetBytesNoBuffer(t *testing.T) {
 	resp.ClearInternalBuffer()
 
 	if resp.Bytes() != nil {
-		t.Error("Internal Buffer not cleaned up")
+		assert.Fail(t, "Internal Buffer not cleaned up")
 	}
 }
 
@@ -1018,23 +1020,23 @@ func TestGetString(t *testing.T) {
 	resp, err := Get("http://httpbin.org/get")
 
 	if err != nil {
-		t.Error("Unable to make request", err)
+		assert.Fail(t, "Unable to make request", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	if resp.String() == "" {
-		t.Error("Response Stream not returned as string", resp.String())
+		assert.Fail(t, "Response Stream not returned as string", resp.String())
 	}
 
 	if resp.String() != resp.String() {
-		t.Error("Body string have not been cached", resp.String())
+		assert.Fail(t, "Body string have not been cached", resp.String())
 	}
 
 	if err := resp.DownloadToFile("randomFile"); err != nil {
-		t.Error("Unable to download file: ", err)
+		assert.Fail(t, "Unable to download file: ", err)
 	}
 
 	defer os.Remove("randomFile")
@@ -1042,7 +1044,7 @@ func TestGetString(t *testing.T) {
 	resp.ClearInternalBuffer()
 
 	if resp.String() != "" {
-		t.Error("Internal Buffer not cleaned up")
+		assert.Fail(t, "Internal Buffer not cleaned up")
 	}
 
 }
@@ -1058,11 +1060,11 @@ func TestGetRedirectHeaderCopy(t *testing.T) {
 	resp, err := Get(srv.URL+"/foo", FromRequestOptions(&RequestOptions{Headers: map[string]string{"X-Custom": "1"}}))
 
 	if err != nil {
-		t.Error("Redirect request failed", err)
+		assert.Fail(t, "Redirect request failed", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	srv.Close()
@@ -1082,11 +1084,11 @@ func TestGetRedirectSecretHeaderNoCopy(t *testing.T) {
 	}))
 
 	if err != nil {
-		t.Error("Redirect request failed", err)
+		assert.Fail(t, "Redirect request failed", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	srv.Close()
@@ -1099,30 +1101,30 @@ func TestMassiveJSONFile(t *testing.T) {
 	}
 	resp, err := Get("https://raw.githubusercontent.com/levigross/sf-city-lots-json/master/citylots.json")
 	if err != nil {
-		t.Error("Request to massive JSON blob failed", err)
+		assert.Fail(t, "Request to massive JSON blob failed", err)
 	}
 
 	myjson := &MassiveJSONBlob{}
 
 	if err := resp.JSON(myjson); err != nil {
-		t.Error("Unable to serialize massive JSON blob", err)
+		assert.Fail(t, "Unable to serialize massive JSON blob", err)
 	}
 
 	if myjson.Type != "FeatureCollection" {
-		t.Error("JSON did not properly serialize")
+		assert.Fail(t, "JSON did not properly serialize")
 	}
 }
 
 func TestGitHubSelfJSON(t *testing.T) {
 	resp, err := Get("https://api.github.com/repos/levigross/grequests")
 	if err != nil {
-		t.Error("Request to reddit JSON blob failed", err)
+		assert.Fail(t, "Request to reddit JSON blob failed", err)
 	}
 
 	myjson := &GithubSelfJSON{}
 
 	if err := resp.JSON(myjson); err != nil {
-		t.Error("Unable to serialize reddit JSON blob", err)
+		assert.Fail(t, "Unable to serialize reddit JSON blob", err)
 	}
 }
 
@@ -1135,11 +1137,11 @@ func TestUnlimitedRedirects(t *testing.T) {
 	resp, err := Get(srv.URL+"/bar", FromRequestOptions(&RequestOptions{Headers: map[string]string{"X-Custom": "1"}}))
 
 	if err == nil {
-		t.Error("Redirect limitation failed", err)
+		assert.Fail(t, "Redirect limitation failed", err)
 	}
 
 	if resp.Ok == true {
-		t.Error("Request did not returned")
+		assert.Fail(t, "Request did not returned")
 	}
 
 	srv.Close()
@@ -1173,11 +1175,11 @@ func TestAuthStripOnRedirect(t *testing.T) {
 	}))
 
 	if err != nil {
-		t.Error("Request had creds inside", err)
+		assert.Fail(t, "Request had creds inside", err)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request had creds inside", resp.StatusCode, resp.String())
+		assert.Fail(t, "Request had creds inside", resp.StatusCode, resp.String())
 	}
 
 	srv.Close()
@@ -1200,7 +1202,7 @@ func TestNoRedirect(t *testing.T) {
 	}))
 
 	if err == nil {
-		t.Error("Request passed when it was supposed to fail on redirect", err)
+		assert.Fail(t, "Request passed when it was supposed to fail on redirect", err)
 	}
 
 	srv.Close()
@@ -1209,37 +1211,37 @@ func TestNoRedirect(t *testing.T) {
 
 func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 	if resp.Error != nil {
-		t.Error("Unable to make request", resp.Error)
+		assert.Fail(t, "Unable to make request", resp.Error)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	myJSONStruct := &BasicGetResponseArgs{}
 
 	if err := resp.JSON(myJSONStruct); err != nil {
-		t.Error("Unable to coerce to JSON", err)
+		assert.Fail(t, "Unable to coerce to JSON", err)
 	}
 
 	if myJSONStruct.Args.Goodbye != "World" && myJSONStruct.Args.Hello != "World" {
-		t.Error("Args not properly set", myJSONStruct.Args)
+		assert.Fail(t, "Args not properly set", myJSONStruct.Args)
 	}
 
 	if myJSONStruct.URL != "http://httpbin.org/get?Goodbye=World&Hello=World" {
-		t.Error("Url is not properly constructed", myJSONStruct.URL)
+		assert.Fail(t, "Url is not properly constructed", myJSONStruct.URL)
 	}
 
 	if resp.Bytes() != nil {
-		t.Error("JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
+		assert.Fail(t, "JSON decoding did not fully consume the response stream (Bytes)", resp.Bytes())
 	}
 
 	if resp.String() != "" {
-		t.Error("JSON decoding did not fully consume the response stream (String)", resp.String())
+		assert.Fail(t, "JSON decoding did not fully consume the response stream (String)", resp.String())
 	}
 
 	if resp.StatusCode != 200 {
-		t.Error("Response returned a non-200 code")
+		assert.Fail(t, "Response returned a non-200 code")
 	}
 
 	return myJSONStruct
@@ -1248,7 +1250,7 @@ func verifyOkArgsResponse(resp *Response, t *testing.T) *BasicGetResponseArgs {
 func TestGetCustomRequestTimeout(t *testing.T) {
 	ro := &RequestOptions{RequestTimeout: 2 * time.Nanosecond}
 	if _, err := Get("http://httpbin.org", FromRequestOptions(ro)); err == nil {
-		t.Error("unexpected: successful connection")
+		assert.Fail(t, "unexpected: successful connection")
 	}
 }
 
@@ -1258,7 +1260,7 @@ func TestGetCustomRequestTimeoutContext(t *testing.T) {
 	ro := &RequestOptions{Context: ctx}
 	cancel()
 	if _, err := Get("http://httpbin.org", FromRequestOptions(ro)); err == nil {
-		t.Error("unexpected: successful connection")
+		assert.Fail(t, "unexpected: successful connection")
 	}
 }
 
@@ -1269,33 +1271,33 @@ func TestGetCustomRequestTimeoutContext(t *testing.T) {
 // It should only be run when testing GET request to http://httpbin.org/get expecting JSON
 func verifyOkResponse(resp *Response, t *testing.T) *BasicGetResponse {
 	if resp.Error != nil {
-		t.Error("Unable to make request", resp.Error)
+		assert.Fail(t, "Unable to make request", resp.Error)
 	}
 
 	if resp.Ok != true {
-		t.Error("Request did not return OK")
+		assert.Fail(t, "Request did not return OK")
 	}
 
 	myJSONStruct := &BasicGetResponse{}
 
 	if err := resp.JSON(myJSONStruct); err != nil {
-		t.Error("Unable to coerce to JSON", err)
+		assert.Fail(t, "Unable to coerce to JSON", err)
 	}
 
 	if myJSONStruct.Headers.Host != "httpbin.org" {
-		t.Error("The host header is invalid")
+		assert.Fail(t, "The host header is invalid")
 	}
 
 	if resp.Bytes() != nil {
-		t.Errorf("JSON decoding did not fully consume the response stream (Bytes) %#v", resp.Bytes())
+		assert.Fail(t, fmt.Sprintf("JSON decoding did not fully consume the response stream (Bytes) %#v", resp.Bytes()))
 	}
 
 	if resp.String() != "" {
-		t.Error("JSON decoding did not fully consume the response stream (String)", resp.String())
+		assert.Fail(t, "JSON decoding did not fully consume the response stream (String)", resp.String())
 	}
 
 	if resp.StatusCode != 200 {
-		t.Error("Response returned a non-200 code")
+		assert.Fail(t, "Response returned a non-200 code")
 	}
 
 	return myJSONStruct
