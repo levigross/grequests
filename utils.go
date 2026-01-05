@@ -51,11 +51,13 @@ var (
 // because Go's XML library only supports XML encoded in UTF-8
 type XMLCharDecoder func(charset string, input io.Reader) (io.Reader, error)
 
-func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
+func addRedirectFunctionality(client *http.Client, ro *RequestOptions) *http.Client {
 	if client.CheckRedirect != nil {
-		return
+		return client
 	}
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+
+	copied := *client
+	copied.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 
 		if ro.RedirectLimit < 0 {
 			return http.ErrUseLastResponse
@@ -86,6 +88,8 @@ func addRedirectFunctionality(client *http.Client, ro *RequestOptions) {
 
 		return nil
 	}
+
+	return &copied
 }
 
 // EnsureTransporterFinalized will ensure that when the HTTP client is GCed

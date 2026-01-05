@@ -194,7 +194,7 @@ func buildRequest(httpMethod, url string, ro *RequestOptions, httpClient *http.C
 	addHTTPHeaders(ro, req)
 	addCookies(ro, req)
 
-	addRedirectFunctionality(httpClient, ro)
+	httpClient = addRedirectFunctionality(httpClient, ro)
 
 	if ro.Context != nil {
 		req = req.WithContext(ro.Context)

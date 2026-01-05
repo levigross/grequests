@@ -115,7 +115,7 @@ type RedirectSuite struct{ suite.Suite }
 func (s *RedirectSuite) TestAddRedirectFunctionality() {
 	client := &http.Client{}
 	ro := &RequestOptions{RedirectLimit: 2, SensitiveHTTPHeaders: map[string]struct{}{"Foo": {}}}
-	addRedirectFunctionality(client, ro)
+	client = addRedirectFunctionality(client, ro)
 	req1 := httptest.NewRequest("GET", "http://x", nil)
 	req1.Header.Set("Foo", "bar")
 	req2 := httptest.NewRequest("GET", "http://y", nil)
