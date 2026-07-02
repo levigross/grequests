@@ -1,11 +1,11 @@
 module github.com/levigross/grequests/v2
 
-go 1.21
+go 1.25.0
 
 require (
 	github.com/google/go-querystring v1.1.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/net v0.19.0
+	golang.org/x/net v0.55.0
 )
 
 require (
